@@ -46,7 +46,6 @@ public class BaseCommand {
 	}
 
 	protected String getFileAsString(String filename) {
-		Path path;
 		StringBuilder data = new StringBuilder();
 		try {
 		     ClassPathResource resource = new ClassPathResource(filename);
@@ -56,8 +55,6 @@ public class BaseCommand {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println("data: " + data.toString());
-
 		return data.toString().trim();
 	}
 }
