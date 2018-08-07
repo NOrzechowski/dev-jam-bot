@@ -1,14 +1,17 @@
 package com.rsi.devjam.utilities;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -46,10 +49,10 @@ public class BaseCommand {
 		Path path;
 		StringBuilder data = new StringBuilder();
 		try {
-			path = Paths.get(getClass().getClassLoader().getResource(filename).getPath());
-			Stream<String> lines = Files.lines(path);
-			lines.forEach(line -> data.append(line).append("\n"));
-			lines.close();
+		     ClassPathResource resource = new ClassPathResource(filename);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+             data.append(reader.lines().collect(Collectors.joining("\n"))).append("\n");
+             reader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
