@@ -46,11 +46,11 @@ public class BaseCommand {
 		Path path;
 		StringBuilder data = new StringBuilder();
 		try {
-			path = Paths.get(getClass().getClassLoader().getResource(filename).toURI());
+			path = Paths.get(getClass().getClassLoader().getResource(filename).getPath());
 			Stream<String> lines = Files.lines(path);
 			lines.forEach(line -> data.append(line).append("\n"));
 			lines.close();
-		} catch (URISyntaxException | IOException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		System.out.println("data: " + data.toString());
