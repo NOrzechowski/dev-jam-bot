@@ -1,6 +1,12 @@
 package com.rsi.devjam.utilities;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
+import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
@@ -10,7 +16,7 @@ import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.User;
 
 public class BaseCommand {
-	
+
 	@Value("${slackApi}")
 	private String slackApi;
 
@@ -34,5 +40,21 @@ public class BaseCommand {
 		UserResponse userResponse = new RestTemplate()
 				.getForEntity(getUserConnectApi() + "&user=" + event.getUserId(), UserResponse.class, token).getBody();
 		return userResponse.getUser();
+	}
+
+	protected String getFileAsString(String filename) {
+		Path path;
+		StringBuilder data = new StringBuilder();
+		try {
+			path = Paths.get(getClass().getClassLoader().getResource(filename).toURI());
+			Stream<String> lines = Files.lines(path);
+			lines.forEach(line -> data.append(line).append("\n"));
+			lines.close();
+		} catch (URISyntaxException | IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println("data: " + data.toString());
+
+		return data.toString().trim();
 	}
 }

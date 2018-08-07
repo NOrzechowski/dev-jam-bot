@@ -60,7 +60,7 @@ public class SlackBot extends Bot {
 
 	// *************************** misc commands **************************\\
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "!faq")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "(?i)^(!faq)$")
 	public void getFaq(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			registerCommand(event);
@@ -69,7 +69,7 @@ public class SlackBot extends Bot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "!help")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "(?i)^(!help|!?)$")
 	public void getHelp(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			registerCommand(event);
@@ -78,7 +78,7 @@ public class SlackBot extends Bot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "!deadlines")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "(?i)^(!deadlines|!dates)$")
 	public void getDeadlines(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			registerCommand(event);
