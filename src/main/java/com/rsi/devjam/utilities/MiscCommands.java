@@ -1,14 +1,17 @@
 package com.rsi.devjam.utilities;
 
-import java.io.InputStream;
-
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.togglz.core.manager.FeatureManager;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
 
 @Component
 public class MiscCommands extends BaseCommand {
+
+	@Autowired
+	private FeatureManager manager;
 
 	@Value("${faqUrl}")
 	private String faqUrl;
@@ -45,9 +48,11 @@ public class MiscCommands extends BaseCommand {
 
 	public String getDeadlines(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (validateInput(event)) {
-			output.append(getFileAsString(DEADLINES_FILE));
-			return output.toString();
+		if (manager.isActive(Features.DATES)) {
+			if (validateInput(event)) {
+				output.append(getFileAsString(DEADLINES_FILE));
+				return output.toString();
+			}
 		}
 		return null;
 	}

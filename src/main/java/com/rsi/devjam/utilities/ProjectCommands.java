@@ -2,6 +2,7 @@ package com.rsi.devjam.utilities;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.togglz.core.manager.FeatureManager;
 
 import com.rsi.devjam.models.Participant;
 import com.rsi.devjam.models.Project;
@@ -13,7 +14,9 @@ import me.ramswaroop.jbot.core.slack.models.Event;
 
 @Component
 public class ProjectCommands extends BaseCommand {
-
+	@Autowired
+	private FeatureManager manager;
+	
 	@Autowired
 	CommandRepository commandRepository;
 
@@ -25,28 +28,30 @@ public class ProjectCommands extends BaseCommand {
 
 	public String getProjects(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (validateInput(event)) {
-			Iterable<Project> currentProjects = projectRepository.findAll();
-			output.append("*These are the current Dev Jam projects available:*\n");
-			output.append("***************************************************\n");
+		if (manager.isActive(Features.GET_PROJECTS)) {
+			if (validateInput(event)) {
+				Iterable<Project> currentProjects = projectRepository.findAll();
+				output.append("*These are the current Dev Jam projects available:*\n");
+				output.append("***************************************************\n");
 
-			currentProjects.forEach(project -> {
-				output.append("		*Project Idea:* " + project.getSummary() + "\n");
-				if (project.isClaimed()) {
-					output.append("		*Project Lead:* " + project.getTeamLead() + "\n");
-				} else {
-					output.append("		--- Project is not claimed yet! ---\n\n");
-				}
-				StringBuilder teamOutput = new StringBuilder();
-				if (project.getTeam() != null) {
-					for (Participant member : project.getTeam().getParticipants()) {
-						teamOutput.append(" - " + member.getName() + "\n");
+				currentProjects.forEach(project -> {
+					output.append("		*Project Idea:* " + project.getSummary() + "\n");
+					if (project.isClaimed()) {
+						output.append("		*Project Lead:* " + project.getTeamLead() + "\n");
+					} else {
+						output.append("		--- Project is not claimed yet! ---\n\n");
 					}
-					output.append("*Members currently signed up:* " + teamOutput.toString());
-				}
+					StringBuilder teamOutput = new StringBuilder();
+					if (project.getTeam() != null) {
+						for (Participant member : project.getTeam().getParticipants()) {
+							teamOutput.append(" - " + member.getName() + "\n");
+						}
+						output.append("*Members currently signed up:* " + teamOutput.toString());
+					}
 
-			});
-			return output.toString();
+				});
+				return output.toString();
+			}
 		}
 		return null;
 
@@ -54,24 +59,30 @@ public class ProjectCommands extends BaseCommand {
 
 	public String addProjectIdea(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (validateInput(event)) {
-			Participant currentUser = particpantRepository.findByUser(event.getUserId());
-			output.append(String.format(
-					"Thanks for submitting a project idea, %s! What is the high level overview of your project?\n",
-					new Object[] { currentUser.getName() }));
-			return output.toString();
+		if (manager.isActive(Features.SUBMIT_PROJECT_IDEA)) {
+
+			if (validateInput(event)) {
+				Participant currentUser = particpantRepository.findByUser(event.getUserId());
+				output.append(String.format(
+						"Thanks for submitting a project idea, %s! What is the high level overview of your project?\n",
+						new Object[] { currentUser.getName() }));
+				return output.toString();
+			}
 		}
 		return null;
 	}
 
 	public String projectWrap(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (validateInput(event)) {
-			Project project = new Project();
-			project.setSummary(event.getText());
-			projectRepository.save(project);
-			output.append("Great, your project idea has been submitted.\n");
-			return output.toString();
+		if (manager.isActive(Features.SUBMIT_PROJECT_IDEA)) {
+
+			if (validateInput(event)) {
+				Project project = new Project();
+				project.setSummary(event.getText());
+				projectRepository.save(project);
+				output.append("Great, your project idea has been submitted.\n");
+				return output.toString();
+			}
 		}
 		return null;
 	}
