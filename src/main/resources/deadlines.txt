@@ -1,1 +1,8 @@
-Event: Test event, Date: August 8th, 2018
+*********************************************************
+Upcoming Deadlines:
+*********************************************************
+*Info Session*, August 20th
+*T-Shirt Signup*, TBD
+*Project & Team Submission Deadline*, September 7th
+*Dev Jam!*, September 21st
+*********************************************************

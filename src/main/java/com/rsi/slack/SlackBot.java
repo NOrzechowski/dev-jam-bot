@@ -69,7 +69,7 @@ public class SlackBot extends Bot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "(?i)^(!help|!?)$")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION }, pattern = "(?i)^(!help)$")
 	public void getHelp(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			registerCommand(event);
@@ -143,11 +143,11 @@ public class SlackBot extends Bot {
 	// TODO
 
 	// housekeeping commands
-/*	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION })
+  /*@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MENTION })
 	public void defaultEndConversation(WebSocketSession session, Event event) {
-//		System.out.println(event.getText() + ".");
-//		if (!event.getText().isEmpty() && !event.getText().startsWith("!"))
-//			stopConversation(event);
+		//		System.out.println(event.getText() + ".");
+		//		if (!event.getText().isEmpty() && !event.getText().startsWith("!"))
+		//			stopConversation(event);
 
 	}*/
 
