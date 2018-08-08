@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.togglz.core.manager.FeatureManager;
 
+import com.rsi.devjam.togglz.Features;
+
 import me.ramswaroop.jbot.core.slack.models.Event;
 
 @Component

@@ -9,6 +9,7 @@ import com.rsi.devjam.models.Project;
 import com.rsi.devjam.repository.CommandRepository;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.ProjectRepository;
+import com.rsi.devjam.togglz.Features;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
 

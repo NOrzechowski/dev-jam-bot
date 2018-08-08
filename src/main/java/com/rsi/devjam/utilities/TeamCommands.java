@@ -8,6 +8,7 @@ import com.rsi.devjam.models.Participant;
 import com.rsi.devjam.models.Team;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.TeamRepository;
+import com.rsi.devjam.togglz.Features;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.User;
