@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.togglz.core.manager.EnumBasedFeatureProvider;
 import org.togglz.core.spi.FeatureProvider;
 
-import com.rsi.devjam.utilities.Features;
+import com.rsi.devjam.togglz.Features;
 
 @SpringBootApplication(scanBasePackages = { "me.ramswaroop.jbot", "com.rsi" })
 public class ProjectBotApplication {
