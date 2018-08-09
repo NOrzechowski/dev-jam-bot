@@ -120,7 +120,7 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = EventType.MESSAGE, pattern = "!currentTeams")
+	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!currentTeams|!teams)$")
 	public void currentTeams(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
@@ -132,7 +132,7 @@ public class SlackBot extends MyBot {
 
 	// *************************** project commands **************************\\
 
-	@Controller(events = EventType.MESSAGE, pattern = "!getProjects")
+	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!getProjects|!projects|!ideas)$")
 	public void getProjects(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			if (manager.isActive(Features.GET_PROJECTS)) {
@@ -143,7 +143,7 @@ public class SlackBot extends MyBot {
 	}
 
 	@Controller(events = { EventType.MESSAGE,
-			EventType.DIRECT_MENTION }, pattern = "!submitProjectIdea", next = "projectSummary")
+			EventType.DIRECT_MENTION }, pattern = "(?i)^(!submitProjectIdea|!addIdea)$", next = "projectSummary")
 	public void submitProjectIdea(WebSocketSession session, Event event, Matcher matcher) {
 		if (!matcher.group(0).isEmpty()) {
 			if (manager.isActive(Features.SUBMIT_PROJECT_IDEA)) {
