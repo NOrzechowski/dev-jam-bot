@@ -5,15 +5,18 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.togglz.core.manager.FeatureManager;
 
+import com.rsi.devjam.models.Participant;
+import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.togglz.Features;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
+import me.ramswaroop.jbot.core.slack.models.User;
 
 @Component
 public class MiscCommands extends BaseCommand {
 
 	@Autowired
-	private FeatureManager manager;
+	ParticipantRepository particpantRepository;
 
 	@Value("${faqUrl}")
 	private String faqUrl;
@@ -50,13 +53,26 @@ public class MiscCommands extends BaseCommand {
 
 	public String getDeadlines(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (manager.isActive(Features.DATES)) {
-			if (validateInput(event)) {
-				output.append(getFileAsString(DEADLINES_FILE));
-				return output.toString();
-			}
+		if (validateInput(event)) {
+			output.append(getFileAsString(DEADLINES_FILE));
+			return output.toString();
 		}
 		return null;
+	}
+
+	public void upsertUser(Event event) {
+		if (validateInput(event)) {
+			User userData = getUser(event);
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+
+			String username = userData.getProfile().getRealName();
+			if (currentUser == null) {
+				currentUser = new Participant(event.getUserId(), username);
+			}
+			currentUser.setName(username);
+			currentUser.setEmail(userData.getProfile().getEmail());
+			particpantRepository.save(currentUser);
+		}
 	}
 
 }

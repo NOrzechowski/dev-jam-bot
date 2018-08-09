@@ -14,6 +14,7 @@ public class Project {
 	private Team team;
 	private Participant teamLead;
 	private Participant submittedBy;
+	private String uniqueIdentifier;
 
 	public String getId() {
 		return id;
@@ -79,4 +80,11 @@ public class Project {
 		this.submittedBy = submittedBy;
 	}
 
+	public String getUniqueIdentifier() {
+		return uniqueIdentifier;
+	}
+
+	public void setUniqueIdentifier(String uniqueIdentifier) {
+		this.uniqueIdentifier = uniqueIdentifier;
+	}
 }

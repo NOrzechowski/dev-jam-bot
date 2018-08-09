@@ -15,8 +15,6 @@ import me.ramswaroop.jbot.core.slack.models.User;
 
 @Component
 public class TeamCommands extends BaseCommand {
-	@Autowired
-	private FeatureManager manager;
 
 	@Autowired
 	TeamRepository teamRepository;
@@ -25,32 +23,20 @@ public class TeamCommands extends BaseCommand {
 	ParticipantRepository particpantRepository;
 
 	public String lookForTeamCommandResponse(Event event) {
-		if (manager.isActive(Features.LOOK_FOR_TEAM)) {
-
 			if (validateInput(event)) {
 				Participant currentUser = particpantRepository.findByUser(event.getUserId());
-				User userData = getUser(event);
 
-				String username = userData.getProfile().getRealName();
-				if (currentUser == null) {
-					currentUser = new Participant(event.getUserId(), username);
-				}
-				currentUser.setName(username);
-				currentUser.setEmail(userData.getProfile().getEmail());
 				currentUser.setLookingForTeam(true);
 				particpantRepository.save(currentUser);
 
 				return "Thank you " + currentUser.getName() + ". You are now marked as looking for a Dev Jam Team.";
 			}
-		}
 
 		return null;
 	}
 
 	public String findATeamMember(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (manager.isActive(Features.FIND_TEAM_MEMBER)) {
-
 			if (validateInput(event)) {
 				Iterable<Participant> currentParticipants = particpantRepository.findAll();
 				currentParticipants.forEach(member -> {
@@ -61,13 +47,11 @@ public class TeamCommands extends BaseCommand {
 				});
 				return output.toString();
 			}
-		}
 		return null;
 	}
 
 	public String currentTeams(Event event) {
 		StringBuilder output = new StringBuilder();
-		if (manager.isActive(Features.CURRENT_TEAMS)) {
 			if (validateInput(event)) {
 				Iterable<Team> currentTeams = teamRepository.findAll();
 				currentTeams.forEach(team -> {
@@ -79,8 +63,7 @@ public class TeamCommands extends BaseCommand {
 
 				});
 				return output.toString();
-			}
-		}
+			}	
 		return null;
 	}
 }
