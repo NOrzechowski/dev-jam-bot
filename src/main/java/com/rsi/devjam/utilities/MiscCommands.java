@@ -64,14 +64,15 @@ public class MiscCommands extends BaseCommand {
 		if (validateInput(event)) {
 			User userData = getUser(event);
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
-
-			String username = userData.getProfile().getRealName();
-			if (currentUser == null) {
-				currentUser = new Participant(event.getUserId(), username);
+			if (userData != null) {
+				String username = userData.getProfile().getRealName();
+				if (currentUser == null) {
+					currentUser = new Participant(event.getUserId(), username);
+				}
+				currentUser.setName(username);
+				currentUser.setEmail(userData.getProfile().getEmail());
+				particpantRepository.save(currentUser);
 			}
-			currentUser.setName(username);
-			currentUser.setEmail(userData.getProfile().getEmail());
-			particpantRepository.save(currentUser);
 		}
 	}
 

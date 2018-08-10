@@ -3,15 +3,12 @@ package com.rsi.devjam.utilities;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
@@ -40,18 +37,26 @@ public class BaseCommand {
 	}
 
 	protected User getUser(Event event) {
-		UserResponse userResponse = new RestTemplate()
-				.getForEntity(getUserConnectApi() + "&user=" + event.getUserId(), UserResponse.class, token).getBody();
-		return userResponse.getUser();
+		RestTemplate template = new RestTemplate();
+		template = new RestTemplate();
+		ResponseEntity<UserResponse> obj = template.getForEntity(getUserConnectApi() + "&user=" + event.getUserId(),
+				UserResponse.class, token);
+
+		if (obj != null) {
+			UserResponse userResponse = obj.getBody();
+			return userResponse.getUser();
+		} else {
+			return null;
+		}
 	}
 
 	protected String getFileAsString(String filename) {
 		StringBuilder data = new StringBuilder();
 		try {
-		     ClassPathResource resource = new ClassPathResource(filename);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
-             data.append(reader.lines().collect(Collectors.joining("\n"))).append("\n");
-             reader.close();
+			ClassPathResource resource = new ClassPathResource(filename);
+			BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream()));
+			data.append(reader.lines().collect(Collectors.joining("\n"))).append("\n");
+			reader.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

@@ -1,5 +1,6 @@
 package com.rsi.devjam.utilities;
 
+import java.util.Objects;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +67,8 @@ public class ProjectCommands extends BaseCommand {
 					}
 
 					// submitter
-					output.append(SPACE).append("*Submitted by:* " + project.getSubmittedBy().getEmail() + "\n");
+					if (!Objects.isNull(project.getSubmittedBy()))
+						output.append(SPACE).append("*Submitted by:* " + project.getSubmittedBy().getEmail() + "\n");
 
 					// team info
 					StringBuilder teamOutput = new StringBuilder();
@@ -103,7 +105,6 @@ public class ProjectCommands extends BaseCommand {
 
 	public String projectWrap(Event event) {
 		StringBuilder output = new StringBuilder();
-
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			Project project = new Project();

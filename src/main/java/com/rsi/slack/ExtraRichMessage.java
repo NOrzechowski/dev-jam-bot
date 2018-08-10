@@ -1,4 +1,4 @@
-package com.rsi.devjam.models;
+package com.rsi.slack;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,10 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import me.ramswaroop.jbot.core.slack.models.Message;
 
-/**
- * @author ramswaroop
- * @version 21/06/2016
- */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ExtraRichMessage extends Message {
 
@@ -19,11 +15,28 @@ public class ExtraRichMessage extends Message {
 		this.linkUser = "1";
 		this.parse = "full";
 	}
+	
+	public ExtraRichMessage(String text, String threadTs) {
+		this.text = text;
+		this.linkUser = "1";
+		this.parse = "full";
+		this.threadTs = threadTs;
+	}
 
 	@JsonProperty("link_user")
 	private String linkUser;
 	private String text;
 	private String parse;
+	@JsonProperty("thread_ts")
+	private String threadTs;
+
+	public String getThreadTs() {
+		return threadTs;
+	}
+
+	public void setThreadTs(String threadTs) {
+		this.threadTs = threadTs;
+	}
 
 	public String getLinkUser() {
 		return linkUser;

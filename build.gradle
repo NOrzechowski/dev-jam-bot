@@ -31,7 +31,9 @@ dependencies {
     compile("me.ramswaroop.jbot:jbot:3.0.2")
     compile("org.togglz:togglz-console:2.6.1.Final")
     compile("org.togglz:togglz-spring-boot-starter:2.6.1.Final")
+    compile("com.google.guava:guava:26.0-jre")
 }
+
 
 bootRun {
     String activeProfile =  System.properties['spring.profiles.active']
