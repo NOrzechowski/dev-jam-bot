@@ -2,25 +2,25 @@ package com.rsi.devjam.utilities;
 
 import org.springframework.stereotype.Component;
 
-import me.ramswaroop.jbot.core.slack.models.Event;
+import com.rsi.slack.MyEvent;
 
 @Component
 public class QuestionCommands extends BaseCommand {
-	public String askQuestion(Event event) {
+	public String askQuestion(MyEvent event) {
 		if (validateInput(event)) {
 
 		}
 		return null;
 	}
 	
-	public String addQuestion(Event event) {
+	public String addQuestion(MyEvent event) {
 		if (validateInput(event)) {
 
 		}
 		return null;
 	}
 	
-	public String answerQuestion(Event event) {
+	public String answerQuestion(MyEvent event) {
 		if (validateInput(event)) {
 
 		}

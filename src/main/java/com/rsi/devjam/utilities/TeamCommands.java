@@ -2,16 +2,14 @@ package com.rsi.devjam.utilities;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.togglz.core.manager.FeatureManager;
 
 import com.rsi.devjam.models.Participant;
 import com.rsi.devjam.models.Team;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.TeamRepository;
-import com.rsi.devjam.togglz.Features;
+import com.rsi.slack.MyEvent;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
-import me.ramswaroop.jbot.core.slack.models.User;
 
 @Component
 public class TeamCommands extends BaseCommand {
@@ -22,7 +20,7 @@ public class TeamCommands extends BaseCommand {
 	@Autowired
 	ParticipantRepository particpantRepository;
 
-	public String lookForTeamCommandResponse(Event event) {
+	public String lookForTeamCommandResponse(MyEvent event) {
 			if (validateInput(event)) {
 				Participant currentUser = particpantRepository.findByUser(event.getUserId());
 
@@ -35,7 +33,7 @@ public class TeamCommands extends BaseCommand {
 		return null;
 	}
 
-	public String findATeamMember(Event event) {
+	public String findATeamMember(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 			if (validateInput(event)) {
 				Iterable<Participant> currentParticipants = particpantRepository.findAll();
@@ -50,7 +48,7 @@ public class TeamCommands extends BaseCommand {
 		return null;
 	}
 
-	public String currentTeams(Event event) {
+	public String currentTeams(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 			if (validateInput(event)) {
 				Iterable<Team> currentTeams = teamRepository.findAll();

@@ -8,6 +8,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -164,8 +165,15 @@ public abstract class MyBot {
 	public final void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
+			System.out.println("1 " + textMessage.getPayload() );
 			MyEvent event = mapper.readValue(textMessage.getPayload(), MyEvent.class);
-			if (event.getType() != null) {
+/*			
+			if(!Objects.isNull(event.getMessage())) {
+				event.setText(event.getMessage().getText());
+			}
+			*/
+ 			if (event.getType() != null) {
+
 				if (event.getType().equalsIgnoreCase(EventType.IM_OPEN.name())) {
 					slackService.addDmChannel(event.getChannelId());
 				} else if (event.getType().equalsIgnoreCase(EventType.MESSAGE.name())) {
@@ -199,7 +207,6 @@ public abstract class MyBot {
 	 */
 	public void startConversation(MyEvent event, String methodName) {
 		String channelId = event.getChannelId();
-		System.out.println("here!");
 		if (!StringUtils.isEmpty(channelId)) {
 			Queue<MethodWrapper> queue = formConversationQueue(new LinkedList<>(), methodName);
 			conversationQueueMap.put(channelId, queue);
@@ -324,7 +331,7 @@ public abstract class MyBot {
 	 * @param session
 	 * @param event
 	 */
-	private void invokeMethods(WebSocketSession session, Event event) {
+	private void invokeMethods(WebSocketSession session, MyEvent event) {
 		try {
 			List<MethodWrapper> methodWrappers = eventToMethodsMap.get(event.getType().toUpperCase());
 			if (methodWrappers == null)
@@ -358,7 +365,7 @@ public abstract class MyBot {
 	 * @param session
 	 * @param event
 	 */
-	private void invokeChainedMethod(WebSocketSession session, Event event) {
+	private void invokeChainedMethod(WebSocketSession session, MyEvent event) {
 		Queue<MethodWrapper> queue = conversationQueueMap.get(event.getChannelId());
 
 		if (queue != null && !queue.isEmpty()) {

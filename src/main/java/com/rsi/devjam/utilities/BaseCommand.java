@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.rsi.slack.MyEvent;
+
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.User;
 
@@ -23,9 +25,14 @@ public class BaseCommand {
 	@Value("${slackBotToken}")
 	private String token;
 
-	protected static boolean validateInput(Event event) {
+	protected static boolean validateInput(MyEvent event) {
 		return (event.getUserId() != null && !StringUtils.isEmpty(event.getText()));
 	}
+	
+	protected static boolean validateTextInput(MyEvent event) {
+		return !StringUtils.isEmpty(event.getText());
+	}
+
 
 	protected static int getRandomNumber(int max) {
 		Random rand = new Random();

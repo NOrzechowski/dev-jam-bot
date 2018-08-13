@@ -11,6 +11,7 @@ import com.rsi.devjam.models.Project;
 import com.rsi.devjam.repository.CommandRepository;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.ProjectRepository;
+import com.rsi.slack.MyEvent;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
 
@@ -44,7 +45,7 @@ public class ProjectCommands extends BaseCommand {
 		return generatedString;
 	}
 
-	public String getProjects(Event event) {
+	public String getProjects(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			Iterable<Project> currentProjects = projectRepository.findAll();
@@ -91,7 +92,7 @@ public class ProjectCommands extends BaseCommand {
 
 	}
 
-	public String addProjectIdea(Event event) {
+	public String addProjectIdea(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
@@ -103,8 +104,9 @@ public class ProjectCommands extends BaseCommand {
 		return null;
 	}
 
-	public String projectWrap(Event event) {
+	public String projectWrap(MyEvent event) {
 		StringBuilder output = new StringBuilder();
+		System.out.println("event user id: " +event.getUserId());
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			Project project = new Project();

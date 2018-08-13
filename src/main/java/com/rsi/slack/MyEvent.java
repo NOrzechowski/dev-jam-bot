@@ -11,10 +11,14 @@ public class MyEvent extends Event {
 
 	@JsonProperty("thread_ts")
 	private String threadTs;
+	
+	private ResponseMessage message;
 
 	public String getThreadTs() {
 		return threadTs;
 	}
+	
+	
 
 	public void setThreadTs(String threadTs) {
 		this.threadTs = threadTs;
@@ -23,4 +27,20 @@ public class MyEvent extends Event {
 	public boolean isThreadMessage() {
 		return !Strings.isNullOrEmpty(this.threadTs);
 	}
+
+
+
+	public ResponseMessage getMessage() {
+		return message;
+	}
+
+
+
+	public void setMessage(ResponseMessage message) {
+		this.message = message;
+	}
+	
+	
+	
+	
 }
