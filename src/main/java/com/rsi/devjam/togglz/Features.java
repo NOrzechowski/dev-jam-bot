@@ -16,10 +16,10 @@ public enum Features implements Feature {
 	@EnabledByDefault
 	@Label("!getProjects")
 	GET_PROJECTS,
-	
+	@EnabledByDefault
 	@Label("!lookForAteam")
 	LOOK_FOR_TEAM,
-	
+	@EnabledByDefault
 	@Label("!findATeamMember")
 	FIND_TEAM_MEMBER,
 	

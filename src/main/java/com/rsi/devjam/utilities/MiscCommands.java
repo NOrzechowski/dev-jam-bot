@@ -24,11 +24,18 @@ public class MiscCommands extends BaseCommand {
 
 	@Value("${deadlinesUrl}")
 	private String deadlinesUrl;
+	
+	@Value("${techRubricUrl}")
+	private String techRubricUrl;
+	
+	@Value("${nonTechRubricUrl}")
+	private String nonTechRubricUrl;
 
 	private static final String FAQ = "FAQ";
 	private static final String HELP = "Help Document";
 	private static final String DEADLINES = "Important Upcoming Dates";
 	private static final String URL_TEMPLATE = "*The %s can be found here: %s *\n";
+	private static final String RUBRIC_TEMPLATE = "*The judging rubrics can be found here:*\n - *Technical Rubric:* %s\n - *Non-Technical Rubric:* %s:\n";
 	private static final String DEADLINES_FILE = "deadlines.txt";
 
 	public String getFaq(MyEvent event) {
@@ -53,6 +60,15 @@ public class MiscCommands extends BaseCommand {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			output.append(getFileAsString(DEADLINES_FILE));
+			return output.toString();
+		}
+		return null;
+	}
+	
+	public String getRubric(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			output.append(String.format(RUBRIC_TEMPLATE, new Object[] { techRubricUrl, nonTechRubricUrl }));
 			return output.toString();
 		}
 		return null;

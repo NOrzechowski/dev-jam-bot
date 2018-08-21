@@ -22,7 +22,6 @@ import me.ramswaroop.jbot.core.slack.Controller;
 import me.ramswaroop.jbot.core.slack.EventType;
 import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.Message;
-import me.ramswaroop.jbot.core.slack.models.RichMessage;
 
 @Component
 @EnableAutoConfiguration
@@ -101,20 +100,39 @@ public class SlackBot extends MyBot {
 			}
 		}
 	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!rubric|!judgingRubric)$")
+	public void getRubric(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			miscCommands.upsertUser(event);
+			reply(session, event, new Message(miscCommands.getRubric(event)));
+
+		}
+	}
 	// *************************** team commands **************************\\
 
-	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!lookForTeam)$")
+	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!lookForTeam|!lookForATeam|!lookingForTeam)$")
 	public void lookForTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.LOOK_FOR_TEAM)) {
 				miscCommands.upsertUser(event);
-				reply(session, event, new Message(teamCommands.lookForTeamCommandResponse(event)));
+				reply(session, event, new ExtraRichMessage(teamCommands.lookForTeamCommandResponse(event)));
 			}
 		}
-
 	}
 
-	@Controller(events = {EventType.MESSAGE,EventType.DIRECT_MESSAGE}, pattern = "(?i)^(!findATeamMember)$")
+	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!foundTeam|!notLookingForTeam)$")
+	public void stopLookingForTeam(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.LOOK_FOR_TEAM)) {
+				miscCommands.upsertUser(event);
+				reply(session, event, new ExtraRichMessage(teamCommands.noLongerLookingForTeamCommandResponse(event)));
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!findATeamMember|!findTeamMember)$")
 	public void findATeamMember(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.FIND_TEAM_MEMBER)) {
@@ -124,7 +142,29 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = {EventType.MESSAGE,EventType.DIRECT_MESSAGE}, pattern = "(?i)^(!currentTeams|!teams)$")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!becomeTeamLead)$")
+	public void becomeTeamLead(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.CURRENT_TEAMS)) {
+				miscCommands.upsertUser(event);
+				reply(session, event, new ExtraRichMessage(teamCommands.becomeTeamLead(event)));
+
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!stopBeingTeamLead)$")
+	public void stopBeingTeamLead(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.CURRENT_TEAMS)) {
+				miscCommands.upsertUser(event);
+				reply(session, event, new ExtraRichMessage(teamCommands.stopBeingTeamLead(event)));
+
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!currentTeams|!teams)$")
 	public void currentTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
@@ -134,9 +174,37 @@ public class SlackBot extends MyBot {
 		}
 	}
 
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!createTeam)$")
+	public void createTeam(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.CURRENT_TEAMS)) {
+				miscCommands.upsertUser(event);
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!getTeams)$")
+	public void getTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.CURRENT_TEAMS)) {
+				miscCommands.upsertUser(event);
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!addMember)$")
+	public void addMember(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.CURRENT_TEAMS)) {
+				miscCommands.upsertUser(event);
+			}
+		}
+	}
+
 	// *************************** project commands **************************\\
 
-	@Controller(events = {EventType.MESSAGE,EventType.DIRECT_MESSAGE}, pattern = "(?i)^(!getProjects|!projects|!ideas)$")
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!getProjects|!projects|!ideas)$")
 	public void getProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.GET_PROJECTS)) {
@@ -170,8 +238,16 @@ public class SlackBot extends MyBot {
 		stopAllConversations(event);
 	}
 
-	// *************************** question commands
-	// **************************\\
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!claimProject)$")
+	public void claimProject(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.GET_PROJECTS)) {
+				miscCommands.upsertUser(event);
+			}
+		}
+	}
+
+	// ************************ question commands ************************\\
 
 	// TODO
 
