@@ -62,15 +62,6 @@ public class SlackBot extends MyBot {
 
 	}
 
-	// Direct Messages
-
-	/*
-	 * @Controller(events = { EventType.DIRECT_MENTION, EventType.DIRECT_MESSAGE
-	 * }) public void onReceiveDM(WebSocketSession session, MyEvent event) {
-	 * registerCommand(event); miscCommands.upsertUser(event); reply(session,
-	 * event, new Message("Hi!! I am " +
-	 * slackService.getCurrentUser().getName())); }
-	 */
 	// *************************** misc commands **************************\\
 
 	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!faq)$")
@@ -106,6 +97,14 @@ public class SlackBot extends MyBot {
 		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
 			reply(session, event, new Message(miscCommands.getRubric(event)));
+
+		}
+	}
+	
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!exampleProjects)$")
+	public void getExampleProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			miscCommands.upsertUser(event);
 
 		}
 	}
@@ -145,7 +144,7 @@ public class SlackBot extends MyBot {
 	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!becomeTeamLead)$")
 	public void becomeTeamLead(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.CURRENT_TEAMS)) {
+			if (manager.isActive(Features.TEAM_LEAD)) {
 				miscCommands.upsertUser(event);
 				reply(session, event, new ExtraRichMessage(teamCommands.becomeTeamLead(event)));
 
@@ -156,7 +155,7 @@ public class SlackBot extends MyBot {
 	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!stopBeingTeamLead)$")
 	public void stopBeingTeamLead(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.CURRENT_TEAMS)) {
+			if (manager.isActive(Features.TEAM_LEAD)) {
 				miscCommands.upsertUser(event);
 				reply(session, event, new ExtraRichMessage(teamCommands.stopBeingTeamLead(event)));
 
@@ -164,36 +163,27 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!currentTeams|!teams)$")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!currentTeams|!teams|!getTeams)$")
 	public void currentTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
 				miscCommands.upsertUser(event);
-				reply(session, event, new Message(teamCommands.currentTeams(event)));
+				reply(session, event, new ExtraRichMessage(teamCommands.currentTeams(event)));
 			}
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!createTeam)$")
-	public void createTeam(WebSocketSession session, MyEvent event, Matcher matcher) {
-		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.CURRENT_TEAMS)) {
-				miscCommands.upsertUser(event);
-			}
-		}
-	}
-
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!getTeams)$")
-	public void getTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
-		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.CURRENT_TEAMS)) {
-				miscCommands.upsertUser(event);
-			}
-		}
-	}
-
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!addMember)$")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!addMember|!addTeamMember)$")
 	public void addMember(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.ADD_MEMBER)) {
+				miscCommands.upsertUser(event);
+			}
+		}
+	}
+	
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$")
+	public void removeMember(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
 				miscCommands.upsertUser(event);
@@ -238,10 +228,10 @@ public class SlackBot extends MyBot {
 		stopAllConversations(event);
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!claimProject)$")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!claimProject | !pickProject)$")
 	public void claimProject(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.GET_PROJECTS)) {
+			if (manager.isActive(Features.PICK_PROJECT)) {
 				miscCommands.upsertUser(event);
 			}
 		}

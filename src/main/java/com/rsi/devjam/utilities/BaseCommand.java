@@ -18,6 +18,9 @@ import me.ramswaroop.jbot.core.slack.models.Event;
 import me.ramswaroop.jbot.core.slack.models.User;
 
 public class BaseCommand {
+	protected static String ASTERISKS = "*********************************************************\n";
+	protected static String DASHES = "------------------------------";
+	protected static String SPACE = "        ";
 
 	@Value("${slackApi}")
 	private String slackApi;
@@ -28,11 +31,10 @@ public class BaseCommand {
 	protected static boolean validateInput(MyEvent event) {
 		return (event.getUserId() != null && !StringUtils.isEmpty(event.getText()));
 	}
-	
+
 	protected static boolean validateTextInput(MyEvent event) {
 		return !StringUtils.isEmpty(event.getText());
 	}
-
 
 	protected static int getRandomNumber(int max) {
 		Random rand = new Random();

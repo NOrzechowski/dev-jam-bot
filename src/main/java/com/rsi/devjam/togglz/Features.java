@@ -22,7 +22,15 @@ public enum Features implements Feature {
 	@EnabledByDefault
 	@Label("!findATeamMember")
 	FIND_TEAM_MEMBER,
-	
+	@EnabledByDefault
+	@Label("!becomeTeamLead")
+	TEAM_LEAD,
+	@EnabledByDefault
+	@Label("!addMember")
+	ADD_MEMBER,
+	@Label("!pickProject")
+	PICK_PROJECT,
+	@EnabledByDefault
 	@Label("!currentTeams")
 	CURRENT_TEAMS;
 

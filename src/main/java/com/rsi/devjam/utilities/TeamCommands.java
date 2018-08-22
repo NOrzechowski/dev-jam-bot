@@ -1,5 +1,7 @@
 package com.rsi.devjam.utilities;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -77,9 +79,10 @@ public class TeamCommands extends BaseCommand {
 	public String stopBeingTeamLead(MyEvent event) {
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
-			currentUser.setLookingForTeam(false);
 			particpantRepository.save(currentUser);
-			teamRepository.deleteByLead(currentUser);
+			List<Team> t = teamRepository.findByLead_User(currentUser.getUser());
+			teamRepository.deleteAll(t);
+			currentUser.setLookingForTeam(false);
 			return "Thank you <@" + currentUser.getUser() + ">. You are no longer a team lead.";
 		}
 		return null;
@@ -89,14 +92,27 @@ public class TeamCommands extends BaseCommand {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			Iterable<Team> currentTeams = teamRepository.findAll();
-			output.append("*These are the current teams participating in DevJam:*\n");
-			currentTeams.forEach(team -> {
-				output.append(String.format("*	- Team Name: %s:*\n", new Object[] { team.getName() }));
-				team.getParticipants().forEach(participant -> {
-					output.append(String.format("*	~%s :*\n", new Object[] { participant.getName() }));
-				});
-
-			});
+			if (currentTeams.iterator().hasNext()) {
+				output.append("*These are the current teams participating in Dev Jam:*\n");
+				output.append(ASTERISKS);
+				int n = 0;
+				for (Team team : currentTeams) {
+					String name = "<@" + team.getLead().getUser() + ">'s Team";
+					output.append("*Team #" + n++ + "*\n");
+					output.append(String.format("*	- Name: %s:*\n", new Object[] { name }));
+					if (team.getParticipants() != null) {
+						output.append("*Members: *\n");
+						team.getParticipants().forEach(participant -> {
+							output.append(String.format("*	~%s :*\n", new Object[] { participant.getName() }));
+						});
+					}
+					output.append(DASHES + "\n");
+				}
+				;
+			} else {
+				output.append("*There are no teams signed up for Dev Jam yet.*\n");
+			}
+			output.append(ASTERISKS);
 			return output.toString();
 		}
 		return null;

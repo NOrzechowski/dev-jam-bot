@@ -8,7 +8,7 @@ import com.rsi.devjam.models.Participant;
 import com.rsi.devjam.models.Team;
 
 public interface TeamRepository extends CrudRepository<Team, String> {
-	List<Team> findByLead(Participant lead);
+	List<Team> findByLead_User(String user);
 	
 	void deleteByLead(Participant lead);
 }

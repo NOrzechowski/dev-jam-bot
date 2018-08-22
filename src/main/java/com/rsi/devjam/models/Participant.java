@@ -87,6 +87,27 @@ public class Participant {
 
 	public void setEmail(String email) {
 		this.email = email;
-	}	
-	
+	}
+
+	@Override
+	public boolean equals(Object o) {
+
+		if (o == this)
+			return true;
+		if (!(o instanceof Participant)) {
+			return false;
+		}
+
+		Participant p = (Participant) o;
+
+		return p.getUser().equals(user);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = 17;
+		result = 31 * result + user.hashCode();
+		return result;
+	}
+
 }

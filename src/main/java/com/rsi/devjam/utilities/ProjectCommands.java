@@ -13,8 +13,6 @@ import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.ProjectRepository;
 import com.rsi.slack.MyEvent;
 
-import me.ramswaroop.jbot.core.slack.models.Event;
-
 @Component
 public class ProjectCommands extends BaseCommand {
 
@@ -26,10 +24,6 @@ public class ProjectCommands extends BaseCommand {
 
 	@Autowired
 	ParticipantRepository particpantRepository;
-
-	private static String ASTERISKS = "*********************************************************\n";
-	private static String DASHES = "------------------------------";
-	private static String SPACE = "        ";
 
 	private String getProjectId() {
 		int leftLimit = 97; // letter 'a'
@@ -106,7 +100,7 @@ public class ProjectCommands extends BaseCommand {
 
 	public String projectWrap(MyEvent event) {
 		StringBuilder output = new StringBuilder();
-		System.out.println("event user id: " +event.getUserId());
+		System.out.println("event user id: " + event.getUserId());
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			Project project = new Project();
