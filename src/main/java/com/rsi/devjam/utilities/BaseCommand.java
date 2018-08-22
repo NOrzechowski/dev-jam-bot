@@ -31,6 +31,9 @@ public class BaseCommand {
 	protected static boolean validateInput(MyEvent event) {
 		return (event.getUserId() != null && !StringUtils.isEmpty(event.getText()));
 	}
+	protected static boolean validateInput(Event event) {
+		return (event.getUserId() != null && !StringUtils.isEmpty(event.getText()));
+	}
 
 	protected static boolean validateTextInput(MyEvent event) {
 		return !StringUtils.isEmpty(event.getText());

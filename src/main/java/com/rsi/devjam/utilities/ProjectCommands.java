@@ -13,6 +13,8 @@ import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.ProjectRepository;
 import com.rsi.slack.MyEvent;
 
+import me.ramswaroop.jbot.core.slack.models.Event;
+
 @Component
 public class ProjectCommands extends BaseCommand {
 
@@ -98,7 +100,7 @@ public class ProjectCommands extends BaseCommand {
 		return null;
 	}
 
-	public String projectWrap(MyEvent event) {
+	public String projectWrap(Event event) {
 		StringBuilder output = new StringBuilder();
 		System.out.println("event user id: " + event.getUserId());
 		if (validateInput(event)) {

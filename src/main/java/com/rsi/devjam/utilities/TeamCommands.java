@@ -99,7 +99,7 @@ public class TeamCommands extends BaseCommand {
 				for (Team team : currentTeams) {
 					String name = "<@" + team.getLead().getUser() + ">'s Team";
 					output.append("*Team #" + n++ + "*\n");
-					output.append(String.format("*	- Name: %s:*\n", new Object[] { name }));
+					output.append(String.format("*	- %s:*\n", new Object[] { name }));
 					if (team.getParticipants() != null) {
 						output.append("*Members: *\n");
 						team.getParticipants().forEach(participant -> {

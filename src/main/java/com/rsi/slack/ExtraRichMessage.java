@@ -15,7 +15,7 @@ public class ExtraRichMessage extends Message {
 		this.linkUser = "1";
 		this.parse = "full";
 	}
-	
+
 	public ExtraRichMessage(String text, String threadTs) {
 		this.text = text;
 		this.linkUser = "1";
@@ -29,6 +29,16 @@ public class ExtraRichMessage extends Message {
 	private String parse;
 	@JsonProperty("thread_ts")
 	private String threadTs;
+	@JsonProperty("reply_to")
+	private int replyTo;
+
+	public int getReplyTo() {
+		return replyTo;
+	}
+
+	public void setReplyTo(int replyTo) {
+		this.replyTo = replyTo;
+	}
 
 	public String getThreadTs() {
 		return threadTs;

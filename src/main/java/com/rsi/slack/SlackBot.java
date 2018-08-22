@@ -69,7 +69,6 @@ public class SlackBot extends MyBot {
 		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
 			reply(session, event, new Message(miscCommands.getFaq(event)));
-			stopConversation(event);
 		}
 	}
 
@@ -78,7 +77,6 @@ public class SlackBot extends MyBot {
 		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
 			reply(session, event, new Message(miscCommands.getHelp(event)));
-			stopConversation(event);
 		}
 	}
 
@@ -100,7 +98,7 @@ public class SlackBot extends MyBot {
 
 		}
 	}
-	
+
 	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!exampleProjects)$")
 	public void getExampleProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
@@ -163,7 +161,8 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!currentTeams|!teams|!getTeams)$")
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!currentTeams|!teams|!getTeams)$")
 	public void currentTeams(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
@@ -181,8 +180,9 @@ public class SlackBot extends MyBot {
 			}
 		}
 	}
-	
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$")
+
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$")
 	public void removeMember(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.CURRENT_TEAMS)) {
@@ -201,8 +201,10 @@ public class SlackBot extends MyBot {
 				miscCommands.upsertUser(event);
 				ExtraRichMessage response = new ExtraRichMessage(projectCommands.getProjects(event));
 				System.out.println("type : " + event.getType());
-				if (!event.getType().equals("DIRECT_MESSAGE"))
+				if (!event.getType().equals("DIRECT_MESSAGE")) {
 					response.setThreadTs(event.getTs());
+					response.setReplyTo(1);
+				}
 				reply(session, event, response);
 			}
 		}
@@ -212,23 +214,27 @@ public class SlackBot extends MyBot {
 			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!submitProjectIdea|!addIdea|!addProjectIdea|!submitProject)$", next = "projectSummary")
 	public void submitProjectIdea(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (manager.isActive(Features.SUBMIT_PROJECT_IDEA)) {
+			System.out.println("here(submitProjectIdea)");
 			if (validateIncomingMessage(event, matcher)) {
 				miscCommands.upsertUser(event);
 				startConversation(event, "projectSummary");
 				ExtraRichMessage response = new ExtraRichMessage(projectCommands.addProjectIdea(event));
 				reply(session, event, response);
+			} else {
+				stopConversation(event);
 			}
 		}
 	}
 
 	@Controller(pattern = "projectSummary")
-	public void projectSummary(WebSocketSession session, MyEvent event) {
+	public void projectSummary(WebSocketSession session, Event event) {
 		ExtraRichMessage response = new ExtraRichMessage(projectCommands.projectWrap(event));
 		reply(session, event, response);
-		stopAllConversations(event);
+		stopConversation(event);
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!claimProject | !pickProject)$")
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!claimProject | !pickProject)$")
 	public void claimProject(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.PICK_PROJECT)) {

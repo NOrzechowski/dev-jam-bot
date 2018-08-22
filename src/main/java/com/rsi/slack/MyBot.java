@@ -165,18 +165,22 @@ public abstract class MyBot {
 	public final void handleTextMessage(WebSocketSession session, TextMessage textMessage) throws Exception {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
-			System.out.println("1 " + textMessage.getPayload() );
-			MyEvent event = mapper.readValue(textMessage.getPayload(), MyEvent.class);
-/*			
-			if(!Objects.isNull(event.getMessage())) {
-				event.setText(event.getMessage().getText());
-			}
-			*/
- 			if (event.getType() != null) {
 
+			System.out.println("1 " + textMessage.getPayload());
+			MyEvent event = mapper.readValue(textMessage.getPayload(), MyEvent.class);
+			boolean isMessage = false;
+			System.out.println("is convo on? " + isConversationOn(event));
+
+			
+			if (event.getType() != null) {
+
+			/*	if(event.getText() != null && event.getMessage().getType() != null) {
+					event.setText(event.getMessage().getText());
+				}*/
 				if (event.getType().equalsIgnoreCase(EventType.IM_OPEN.name())) {
 					slackService.addDmChannel(event.getChannelId());
 				} else if (event.getType().equalsIgnoreCase(EventType.MESSAGE.name())) {
+					isMessage = true;
 					if (event.getText() != null && event.getText().contains(slackService.getCurrentUser().getId())) { // direct
 																														// mention
 						event.setType(EventType.DIRECT_MENTION.name());
@@ -189,11 +193,14 @@ public abstract class MyBot {
 						// messages
 				event.setType(EventType.ACK.name());
 			}
+			if (event.getType() != null && isMessage && event.getText() != null) {
 
-			if (isConversationOn(event)) {
-				invokeChainedMethod(session, event);
-			} else {
-				invokeMethods(session, event);
+				if (isConversationOn(event)) {
+					invokeChainedMethod(session, event);
+				} else {
+					stopAllConversations(event);
+					invokeMethods(session, event);
+				}
 			}
 		} catch (Exception e) {
 			logger.error("Error handling response from Slack: {}. \nException: ", textMessage.getPayload(), e);
@@ -207,6 +214,7 @@ public abstract class MyBot {
 	 */
 	public void startConversation(MyEvent event, String methodName) {
 		String channelId = event.getChannelId();
+		System.out.println("starting conversation");
 		if (!StringUtils.isEmpty(channelId)) {
 			Queue<MethodWrapper> queue = formConversationQueue(new LinkedList<>(), methodName);
 			conversationQueueMap.put(channelId, queue);
@@ -229,9 +237,11 @@ public abstract class MyBot {
 	 *
 	 * @param event
 	 */
-	public void stopConversation(MyEvent event) {
+	public void stopConversation(Event event) {
 		conversationQueueMap.remove(event.getChannelId());
+		System.out.println("size of queue: " + conversationQueueMap.size());
 	}
+
 	public void stopAllConversations(MyEvent event) {
 		conversationQueueMap.clear();
 	}
@@ -243,6 +253,7 @@ public abstract class MyBot {
 	 * @return true if a conversation is on, false otherwise.
 	 */
 	public boolean isConversationOn(MyEvent event) {
+		System.out.println(" in isConvoOn: " + conversationQueueMap.size());
 		return conversationQueueMap.get(event.getChannelId()) != null;
 	}
 
@@ -301,7 +312,7 @@ public abstract class MyBot {
 	private String encode(String message) {
 		return message == null ? null : message.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
 	}
-	
+
 	private String complexEncode(String message) {
 		return message == null ? null : message.replace("&", "&amp;");
 	}
