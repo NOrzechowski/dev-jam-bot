@@ -79,10 +79,10 @@ public class TeamCommands extends BaseCommand {
 	public String stopBeingTeamLead(MyEvent event) {
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
-			particpantRepository.save(currentUser);
 			List<Team> t = teamRepository.findByLead_User(currentUser.getUser());
 			teamRepository.deleteAll(t);
 			currentUser.setLookingForTeam(false);
+			particpantRepository.save(currentUser);
 			return "Thank you <@" + currentUser.getUser() + ">. You are no longer a team lead.";
 		}
 		return null;
