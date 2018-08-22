@@ -61,6 +61,20 @@ public class BaseCommand {
 			return null;
 		}
 	}
+	
+	protected User getUser(String userId) {
+		RestTemplate template = new RestTemplate();
+		template = new RestTemplate();
+		ResponseEntity<UserResponse> obj = template.getForEntity(getUserConnectApi() + "&user=" +userId,
+				UserResponse.class, token);
+
+		if (obj != null) {
+			UserResponse userResponse = obj.getBody();
+			return userResponse.getUser();
+		} else {
+			return null;
+		}
+	}
 
 	protected String getFileAsString(String filename) {
 		StringBuilder data = new StringBuilder();

@@ -166,10 +166,9 @@ public abstract class MyBot {
 		ObjectMapper mapper = new ObjectMapper();
 		try {
 
-			System.out.println("1 " + textMessage.getPayload());
+			System.out.println("incoming message: " + textMessage.getPayload());
 			MyEvent event = mapper.readValue(textMessage.getPayload(), MyEvent.class);
 			boolean isMessage = false;
-			System.out.println("is convo on? " + isConversationOn(event));
 
 			
 			if (event.getType() != null) {
@@ -253,7 +252,6 @@ public abstract class MyBot {
 	 * @return true if a conversation is on, false otherwise.
 	 */
 	public boolean isConversationOn(MyEvent event) {
-		System.out.println(" in isConvoOn: " + conversationQueueMap.size());
 		return conversationQueueMap.get(event.getChannelId()) != null;
 	}
 

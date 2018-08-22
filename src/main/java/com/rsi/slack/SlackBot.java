@@ -47,6 +47,8 @@ public class SlackBot extends MyBot {
 
 	private static final String COMMAND_NOT_ENABLED = "Sorry %s, that command is not enabled yet!";
 
+	String lastTs = "";
+	
 	@Override
 	public String getSlackToken() {
 		return slackToken;
@@ -103,7 +105,7 @@ public class SlackBot extends MyBot {
 	public void getExampleProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
-
+			reply(session, event, new Message(miscCommands.getExampleProjects(event)));
 		}
 	}
 	// *************************** team commands **************************\\
@@ -172,22 +174,57 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!addMember|!addTeamMember)$")
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!addMember|!addTeamMember)$", next = "addMemberFinal")
 	public void addMember(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.ADD_MEMBER)) {
 				miscCommands.upsertUser(event);
+				startConversation(event, "addMemberFinal");
+				ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamMemberInit(event));
+				response.setThreadTs(event.getTs());
+				lastTs = event.getTs();
+				reply(session, event, response);
 			}
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE,
-			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$")
-	public void removeMember(WebSocketSession session, MyEvent event, Matcher matcher) {
-		if (validateIncomingMessage(event, matcher)) {
-			if (manager.isActive(Features.CURRENT_TEAMS)) {
-				miscCommands.upsertUser(event);
-			}
+	@Controller(pattern = "addMemberFinal")
+	public void addMemberFinal(WebSocketSession session, MyEvent event) {
+		if (manager.isActive(Features.ADD_MEMBER)) {
+			miscCommands.upsertUser(event);
+			ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamMemberFinal(event));
+			response.setThreadTs(lastTs);
+			lastTs = "";
+			response.setReplyTo(1);
+			System.out.println("response text: " + response.getText());
+			reply(session, event, response);
+			stopConversation(event);
+		}
+
+	}
+
+	@Controller(events = {
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$", next = "removeMemberFinal")
+	public void removeMemberInit(WebSocketSession session, MyEvent event) {
+		if (manager.isActive(Features.ADD_MEMBER)) {
+			miscCommands.upsertUser(event);
+			startConversation(event, "addMemberFinal");
+			ExtraRichMessage response = new ExtraRichMessage(teamCommands.removeTeamMemberInit(event));
+			response.setThreadTs(event.getTs());
+			reply(session, event, response);
+		}
+
+	}
+
+	@Controller(pattern = "removeMemberFinal")
+	public void removeMemberFinal(WebSocketSession session, MyEvent event) {
+		if (manager.isActive(Features.ADD_MEMBER)) {
+			miscCommands.upsertUser(event);
+			ExtraRichMessage response = new ExtraRichMessage(teamCommands.removeTeamMemberFinal(event));
+			response.setThreadTs(event.getTs());
+			reply(session, event, response);
+			stopConversation(event);
 		}
 	}
 
