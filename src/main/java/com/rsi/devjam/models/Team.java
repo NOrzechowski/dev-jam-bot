@@ -12,6 +12,7 @@ public class Team {
 	private String name;
 	private List<Participant> participants;
 	private Participant lead;
+	private Project project;
 
 	public String getId() {
 		return id;
@@ -44,5 +45,15 @@ public class Team {
 	public void setLead(Participant lead) {
 		this.lead = lead;
 	}
+
+	public Project getProject() {
+		return project;
+	}
+
+	public void setProject(Project project) {
+		this.project = project;
+	}
+	
+	
 
 }

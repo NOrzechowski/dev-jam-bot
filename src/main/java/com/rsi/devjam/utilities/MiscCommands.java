@@ -34,6 +34,9 @@ public class MiscCommands extends BaseCommand {
 	@Value("${exampleProjectTech}")
 	private String exampleProjectTech;
 
+	@Value("${projectSubmissionUrl}")
+	private String projectSubmissionUrl;
+
 	@Value("${exampleProjectNonTech}")
 	private String exampleProjectNonTech;
 
@@ -86,6 +89,15 @@ public class MiscCommands extends BaseCommand {
 		if (validateInput(event)) {
 			output.append(String.format(EXAMPLE_PROJECTS_TEMPLATE,
 					new Object[] { exampleProjectTech, exampleProjectNonTech }));
+			return output.toString();
+		}
+		return null;
+	}
+	
+	public String getProjectSubmission(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			output.append(String.format(URL_TEMPLATE, new Object[] { "Submission Form", projectSubmissionUrl }));
 			return output.toString();
 		}
 		return null;

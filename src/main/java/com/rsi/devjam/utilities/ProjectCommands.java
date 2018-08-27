@@ -1,16 +1,20 @@
 package com.rsi.devjam.utilities;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.rsi.devjam.models.Participant;
 import com.rsi.devjam.models.Project;
+import com.rsi.devjam.models.Team;
 import com.rsi.devjam.repository.CommandRepository;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.ProjectRepository;
+import com.rsi.devjam.repository.TeamRepository;
 import com.rsi.slack.MyEvent;
 
 import me.ramswaroop.jbot.core.slack.models.Event;
@@ -26,6 +30,17 @@ public class ProjectCommands extends BaseCommand {
 
 	@Autowired
 	ParticipantRepository particpantRepository;
+	
+	@Autowired
+	TeamRepository teamRepository;
+	
+	@Value("${projectSubmissionUrl}")
+	private String projectSubmissionUrl;
+	
+	@Value("${projectComitteeMembers}")
+	private String projectComitteeMembers;
+	
+
 
 	private String getProjectId() {
 		int leftLimit = 97; // letter 'a'
@@ -58,7 +73,7 @@ public class ProjectCommands extends BaseCommand {
 
 					// project lead
 					if (project.isClaimed()) {
-						output.append(SPACE).append("*Project Lead:* " + project.getTeamLead() + "\n");
+						output.append(SPACE).append("*Project Claimed By:* " + project.getTeamLead().getEmail() + "\n");
 					} else {
 						output.append(SPACE).append("--- Project is not claimed yet ---\n");
 					}
@@ -111,6 +126,56 @@ public class ProjectCommands extends BaseCommand {
 			project.setSubmittedBy(currentUser);
 			projectRepository.save(project);
 			output.append("Great, your project idea has been submitted.\n");
+			return output.toString();
+		}
+		return null;
+	}
+	
+	
+	public String claimProject(MyEvent event) {
+		String couldNotBeFound = "Sorry, that project could not be found.\n";
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+			if (!currentUser.isTeamLead()) {
+				output.append("*You must be a team lead to claim a project.*\n");
+			} else {
+				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
+				Team currentTeam = teams.get(0);
+				//unset existing claimed project
+				if(currentTeam.getProject() != null) {
+					List<Project> existingProjects = projectRepository.findByUniqueIdentifier(currentTeam.getProject().getUniqueIdentifier());
+
+					Project p = existingProjects.get(0);
+					p.setTeamLead(null);
+					p.setClaimed(false);
+					projectRepository.save(p);
+					
+					currentTeam.setProject(null);
+					teamRepository.save(currentTeam);
+				}
+				
+				//set new claimed project
+				String[] entries = event.getText().split(" ");
+				if(entries.length >= 1) {
+					String pId = entries[1].trim();
+					List<Project> projects = projectRepository.findByUniqueIdentifier(pId);
+					if(!projects.isEmpty()) {
+						Project project = projects.get(0);
+						project.setClaimed(true);
+						project.setTeamLead(currentUser);
+						projectRepository.save(project);
+						
+						currentTeam.setProject(project);
+						teamRepository.save(currentTeam);
+						output.append("*Thanks! In order to fully submit your team you must fill out the following form:* " + projectSubmissionUrl + "\n");
+						output.append("- If you need additional help, feel free to reach out to a member of the project comittee (" + projectComitteeMembers + ")\n");
+					}else {
+						output.append(couldNotBeFound);
+					}
+				}
+			}
+			
 			return output.toString();
 		}
 		return null;

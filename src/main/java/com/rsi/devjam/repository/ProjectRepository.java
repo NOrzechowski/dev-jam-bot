@@ -10,4 +10,6 @@ public interface ProjectRepository extends CrudRepository<Project, String> {
 	
 	List<Project> findBySummary(String summary);
 	
+	List<Project> findByUniqueIdentifier(String uniqueIdentifier);
+	
 }

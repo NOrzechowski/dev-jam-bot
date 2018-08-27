@@ -1,8 +1,13 @@
 package com.rsi.devjam.utilities;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -92,6 +97,43 @@ public class TeamCommands extends BaseCommand {
 		return null;
 	}
 
+	public CompositeResponse addTeamNameInit(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		boolean errorOccured = false;
+		if (validateInput(event)) {
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+			if (!currentUser.isTeamLead()) {
+				errorOccured = true;
+				output.append("*You must be a team lead to remove a team member*\n");
+			} else {
+				output.append(
+						"Thank you <@" + currentUser.getUser() + ">. What would you like the name of your team to be?");
+			}
+			return new CompositeResponse(output.toString(), errorOccured);
+		}
+		return null;
+	}
+
+	public String addTeamNameFinal(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+
+			String name = event.getText();
+			if (Strings.isNotBlank(name)) {
+
+				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
+				Team t = teams.get(0);
+				t.setName(name);
+				teamRepository.save(t);
+				output.append("Great, your team name has been updated\n");
+			}
+
+			return output.toString();
+		}
+		return null;
+	}
+
 	public String currentTeams(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
@@ -101,9 +143,16 @@ public class TeamCommands extends BaseCommand {
 				output.append(ASTERISKS);
 				int n = 0;
 				for (Team team : currentTeams) {
-					String name = "<@" + team.getLead().getUser() + ">'s Team";
+					String teamName = team.getLead().getName() + "'s Team";
 					output.append("*Team #" + n++ + ":*\n");
-					output.append(String.format("*	- %s*\n", new Object[] { name }));
+					if (Strings.isNotBlank(team.getName())) {
+						teamName = "Team Name: " + team.getName();
+						output.append(String.format("* - %s*\n", new Object[] { teamName }));
+						output.append("* - Team Lead: " + team.getLead().getEmail() + "*\n");
+					} else {
+						output.append(String.format("*	- %s*\n", new Object[] { teamName }));
+					}
+
 					if (team.getParticipants() != null) {
 						output.append("*Members: *\n");
 						team.getParticipants().forEach(participant -> {
@@ -122,46 +171,51 @@ public class TeamCommands extends BaseCommand {
 		return null;
 	}
 
-	public String addTeamMemberInit(MyEvent event) {
+	public CompositeResponse removeTeamMemberInit(MyEvent event) {
 		StringBuilder output = new StringBuilder();
+		boolean errorOccured = false;
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			if (!currentUser.isTeamLead()) {
-				output.append("*You must be a team lead to add team members*\n");
+				errorOccured = true;
+				output.append("*You must be a team lead to remove a team member*\n");
 			} else {
-				output.append("Thank you <@" + currentUser.getUser() + ">. Who would you like to add?");
+				output.append(
+						"Thank you <@" + currentUser.getUser() + ">. Who would you like to remove from your team?");
 			}
-			return output.toString();
+			return new CompositeResponse(output.toString(), errorOccured);
 		}
 		return null;
 	}
 
-	public String addTeamMemberFinal(MyEvent event) {
+	public String removeTeamMemberFinal(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			String userId = event.getText();
 			String parsedUserId = userId.substring(userId.indexOf('@') + 1, userId.length() - 1);
-			System.out.println("parsed user id: " + parsedUserId);
-
+			System.out.println("removing team member: " + parsedUserId);
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			miscCommands.upsertUser(parsedUserId);
 
-			Participant userToAdd = particpantRepository.findByUser(parsedUserId);
-			if (userToAdd != null) {
-				userToAdd.setLookingForTeam(false);
-				particpantRepository.save(userToAdd);
+			Participant userToRemove = particpantRepository.findByUser(parsedUserId);
+			if (userToRemove != null) {
 
 				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
 				Team t = teams.get(0);
 				List<Participant> participants = t.getParticipants();
-				if (participants == null) {
-					participants = new LinkedList<Participant>();
+				List<Participant> newParticipants = new LinkedList<Participant>();
+
+				if (participants != null) {
+					for (Participant p : participants) {
+						if (!p.getName().equals(userToRemove.getName())) {
+							newParticipants.add(p);
+						}
+					}
 				}
 
-				participants.add(userToAdd);
-				t.setParticipants(participants);
+				t.setParticipants(newParticipants);
 				teamRepository.save(t);
-				output.append("Great, they have been added to your team.\n");
+				output.append("They have been removed from your team.\n");
 			} else {
 				output.append("Sorry, that user cannot be found.\n");
 			}
@@ -171,18 +225,84 @@ public class TeamCommands extends BaseCommand {
 		return null;
 	}
 
-	public String removeTeamMemberInit(MyEvent event) {
+	public CompositeResponse addTeamMembersInit(MyEvent event) {
 		StringBuilder output = new StringBuilder();
+		boolean errors = false;
 		if (validateInput(event)) {
-
-			return output.toString();
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+			if (!currentUser.isTeamLead()) {
+				output.append("*You must be a team lead to add team members*\n");
+				errors = true;
+			} else {
+				output.append("Thank you <@" + currentUser.getUser()
+						+ ">. Who would you like to add? Mention as many usernames as you would like.");
+			}
+			return new CompositeResponse(output.toString(), errors);
 		}
 		return null;
 	}
 
-	public String removeTeamMemberFinal(MyEvent event) {
+	public String addTeamMembersFinal(MyEvent event) {
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
+			String userIds = event.getText();
+			String[] slackIds = userIds.split("<");
+			System.out.println("size: " + slackIds.length);
+			for (String userId : slackIds) {
+				System.out.println("user id: " + userId);
+			}
+			boolean foundInvalids = false;
+			boolean foundAny = false;
+			Team teamInQuestion = null;
+			for (int i = 1; i < slackIds.length; i++) {
+				String userId = slackIds[i].trim();
+				String parsedUserId = userId.substring(1, userId.indexOf(">"));
+				System.out.println("parsedUserId: " + parsedUserId);
+
+				Participant currentUser = particpantRepository.findByUser(event.getUserId());
+				miscCommands.upsertUser(parsedUserId);
+
+				Participant userToAdd = particpantRepository.findByUser(parsedUserId);
+				if (userToAdd != null) {
+					userToAdd.setLookingForTeam(false);
+					particpantRepository.save(userToAdd);
+
+					List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
+					Team t = teams.get(0);
+					List<Participant> participants = t.getParticipants();
+					if (participants == null) {
+						participants = new LinkedList<Participant>();
+					}
+
+					participants.add(userToAdd);
+					t.setParticipants(participants);
+					teamInQuestion = t;
+					teamRepository.save(t);
+					foundAny = true;
+				} else {
+					foundInvalids = true;
+				}
+			}
+			// filter out dupes
+			if (teamInQuestion != null) {
+				List<Participant> participants = teamInQuestion.getParticipants();
+				Set<Participant> set = participants.stream().collect(
+						Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(Participant::getUser))));
+				List<Participant> filteredParticipants = new LinkedList<Participant>();
+				filteredParticipants.addAll(set);
+				teamInQuestion.setParticipants(filteredParticipants);
+				teamRepository.save(teamInQuestion);
+			}
+
+			// adjust return message based on errors found
+			if (!foundAny) {
+				output.append("Sorry, none of the users specified could be found.\n");
+			} else if (foundInvalids) {
+				output.append("Great, the valid usernames have been added to your team.\n");
+
+			} else {
+				output.append("Great, they have been added to your team.\n");
+			}
 
 			return output.toString();
 		}
