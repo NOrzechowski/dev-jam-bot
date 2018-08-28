@@ -12,8 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.rsi.devjam.models.Participant;
+import com.rsi.devjam.models.Project;
 import com.rsi.devjam.models.Team;
 import com.rsi.devjam.repository.ParticipantRepository;
+import com.rsi.devjam.repository.ProjectRepository;
 import com.rsi.devjam.repository.TeamRepository;
 import com.rsi.slack.MyEvent;
 
@@ -25,6 +27,9 @@ public class TeamCommands extends BaseCommand {
 
 	@Autowired
 	ParticipantRepository particpantRepository;
+	
+	@Autowired
+	ProjectRepository projectRepository;
 
 	@Autowired
 	MiscCommands miscCommands;
@@ -88,8 +93,16 @@ public class TeamCommands extends BaseCommand {
 	public String stopBeingTeamLead(MyEvent event) {
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
-			List<Team> t = teamRepository.findByLead_User(currentUser.getUser());
-			teamRepository.deleteAll(t);
+			List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
+			Team t = teams.get(0);
+			if(t != null) {
+				List<Project> projects = projectRepository.findByUniqueIdentifier(t.getProject().getUniqueIdentifier());
+				Project p = projects.get(0);
+				p.setTeamLead(null);
+				p.setClaimed(false);
+				projectRepository.save(p);
+			}
+			teamRepository.deleteAll(teams);
 			currentUser.setTeamLead(false);
 			particpantRepository.save(currentUser);
 			return "Thank you <@" + currentUser.getUser() + ">. You are no longer a team lead.";
