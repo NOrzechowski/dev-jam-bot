@@ -72,7 +72,7 @@ public class ProjectCommands extends BaseCommand {
 					output.append(SPACE).append("*ID:* " + project.getUniqueIdentifier() + "\n");
 
 					// project lead
-					if (project.isClaimed()) {
+					if (project.isClaimed() && project.getTeamLead() != null) {
 						output.append(SPACE).append("*Project Claimed By:* " + project.getTeamLead().getEmail() + "\n");
 					} else {
 						output.append(SPACE).append("--- Project is not claimed yet ---\n");
