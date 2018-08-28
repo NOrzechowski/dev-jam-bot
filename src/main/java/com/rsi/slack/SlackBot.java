@@ -114,6 +114,73 @@ public class SlackBot extends MyBot {
 			reply(session, event, new Message(miscCommands.getExampleProjects(event)));
 		}
 	}
+	
+	@Controller(events = { EventType.MESSAGE}, pattern = "(?<=:8ball:).*$")
+	public void magic8ball(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+				miscCommands.upsertUser(event);
+				CompositeResponse res = miscCommands.eightBall(event);
+				ExtraRichMessage response;
+				if(res.isErrorsOccured()) {
+					response = new ExtraRichMessage(res.getMessageResponse(), event.getEventTs());
+				}else {
+					response = new ExtraRichMessage(res.getMessageResponse());
+				}
+				reply(session, event, response);
+		}
+	}
+	
+	
+	@Controller(events = {
+			EventType.MESSAGE,EventType.DIRECT_MESSAGE}, pattern = "(?i)^(!t-shirt|!tShirt)$", next = "tShirtFinal")
+	public void tShirt(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+				miscCommands.upsertUser(event);
+				startConversation(event, "tShirtFinal");
+				CompositeResponse msg = miscCommands.tShirtInit(event);
+				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
+				
+				if (!event.getType().equals("DIRECT_MESSAGE")) {
+					response.setThreadTs(event.getTs());
+					response.setReplyTo(1);
+				}
+				lastTs = event.getTs();
+				lastUserId = event.getUserId();
+				reply(session, event, response);
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "tShirtFinal")
+	public void tShirtFinal(WebSocketSession session, MyEvent event) {
+			miscCommands.upsertUser(event);
+			if (event.getUserId().equals(lastUserId)) {
+				ExtraRichMessage response = new ExtraRichMessage(miscCommands.tShirtFinal(event));
+				if (!event.getType().equals("DIRECT_MESSAGE")) {
+					response.setThreadTs(lastTs);
+					response.setReplyTo(1);
+				}
+				lastTs = "";
+				reply(session, event, response);
+			}
+			stopConversation(event);
+	}
+	
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!tshirts|!signedUpForTShirts|!t-shirts)$")
+	public void getTshirts(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.GET_PROJECTS)) {
+				miscCommands.upsertUser(event);
+				ExtraRichMessage response = new ExtraRichMessage(miscCommands.getTShirtParticipants(event));
+				if (!event.getType().equals("DIRECT_MESSAGE")) {
+					response.setThreadTs(event.getTs());
+					response.setReplyTo(1);
+				}
+				reply(session, event, response);
+			}
+		}
+	}
 	// *************************** team commands **************************\\
 
 	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!lookForTeam|!lookForATeam|!lookingForTeam)$")
@@ -332,7 +399,7 @@ public class SlackBot extends MyBot {
 			System.out.println("claim project: " + event.getText());
 			if (manager.isActive(Features.PICK_PROJECT)) {
 				miscCommands.upsertUser(event);
-				ExtraRichMessage response = new ExtraRichMessage(projectCommands.claimProject(event), event.getEventTs());
+				ExtraRichMessage response = new ExtraRichMessage(projectCommands.claimProject(event).getMessageResponse(), event.getEventTs());
 				reply(session, event, response);
 			}
 		}

@@ -132,8 +132,9 @@ public class ProjectCommands extends BaseCommand {
 	}
 	
 	
-	public String claimProject(MyEvent event) {
+	public CompositeResponse claimProject(MyEvent event) {
 		String couldNotBeFound = "Sorry, that project could not be found.\n";
+		boolean errorsFound = false;
 		StringBuilder output = new StringBuilder();
 		if (validateInput(event)) {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
@@ -142,22 +143,24 @@ public class ProjectCommands extends BaseCommand {
 			} else {
 				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
 				Team currentTeam = teams.get(0);
-				//unset existing claimed project
-				if(currentTeam.getProject() != null) {
-					List<Project> existingProjects = projectRepository.findByUniqueIdentifier(currentTeam.getProject().getUniqueIdentifier());
-
-					Project p = existingProjects.get(0);
-					p.setTeamLead(null);
-					p.setClaimed(false);
-					projectRepository.save(p);
-					
-					currentTeam.setProject(null);
-					teamRepository.save(currentTeam);
-				}
+		
 				
 				//set new claimed project
 				String[] entries = event.getText().split(" ");
 				if(entries.length >= 1) {
+					//unset existing claimed project
+					if(currentTeam.getProject() != null) {
+						List<Project> existingProjects = projectRepository.findByUniqueIdentifier(currentTeam.getProject().getUniqueIdentifier());
+
+						Project p = existingProjects.get(0);
+						p.setTeamLead(null);
+						p.setClaimed(false);
+						projectRepository.save(p);
+						
+						currentTeam.setProject(null);
+						teamRepository.save(currentTeam);
+					}
+					
 					String pId = entries[1].trim();
 					List<Project> projects = projectRepository.findByUniqueIdentifier(pId);
 					if(!projects.isEmpty()) {
@@ -173,10 +176,12 @@ public class ProjectCommands extends BaseCommand {
 					}else {
 						output.append(couldNotBeFound);
 					}
+				} else {
+					//nothing for now
 				}
 			}
 			
-			return output.toString();
+			return new CompositeResponse(output.toString(), errorsFound);
 		}
 		return null;
 	}

@@ -16,7 +16,9 @@ public class Participant {
 	private boolean lookingForTeam;
 	private boolean teamLead;
 	private Date updateDate = new Date();
-
+	private boolean wantsTShirt;
+	private String tShirtSize;
+	
 	public Participant() {
 	}
 
@@ -87,6 +89,23 @@ public class Participant {
 
 	public void setEmail(String email) {
 		this.email = email;
+	}
+	
+
+	public boolean isWantsTShirt() {
+		return wantsTShirt;
+	}
+
+	public void setWantsTShirt(boolean wantsTShirt) {
+		this.wantsTShirt = wantsTShirt;
+	}
+
+	public String gettShirtSize() {
+		return tShirtSize;
+	}
+
+	public void settShirtSize(String tShirtSize) {
+		this.tShirtSize = tShirtSize;
 	}
 
 	@Override
