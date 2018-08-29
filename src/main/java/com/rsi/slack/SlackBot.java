@@ -331,8 +331,28 @@ public class SlackBot extends MyBot {
 		reply(session, event, new ExtraRichMessage("added " + channel));
 
 	}
+	
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$", next = "removeMemberFinal")
+	public void removeMemberInit(WebSocketSession session, MyEvent event) {
+		logger.debug("in removeTeamMember");
+		System.out.println("in remove team member: " + event.getText());
+		if (manager.isActive(Features.ADD_MEMBER)) {
+			miscCommands.upsertUser(event);
+			lastUserId = event.getUserId();
+			startConversation(event, "removeMemberFinal");
+			CompositeResponse msg = teamCommands.removeTeamMemberInit(event);
+			if (msg.isErrorsOccured()) {
+				stopConversation(event);
+			}
+			ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
+			reply(session, event, response);
 
-	@Controller(events = { EventType.DIRECT_MESSAGE }, pattern = "removeMemberFinal")
+		}
+
+	}
+
+	@Controller(events = {  EventType.MESSAGE,EventType.DIRECT_MESSAGE }, pattern = "removeMemberFinal")
 	public void removeMemberFinal(WebSocketSession session, MyEvent event) {
 		System.out.println("in remove member final: " + event.getText());
 		if (manager.isActive(Features.ADD_MEMBER)) {
@@ -411,23 +431,5 @@ public class SlackBot extends MyBot {
 		commandRepository.save(command);
 	}
 	
-	@Controller(events = {
-			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$", next = "removeMemberFinal")
-	public void removeMemberInit(WebSocketSession session, MyEvent event) {
-		logger.debug("in removeTeamMember");
-		System.out.println("in remove team member: " + event.getText());
-		if (manager.isActive(Features.ADD_MEMBER)) {
-			miscCommands.upsertUser(event);
-			lastUserId = event.getUserId();
-			startConversation(event, "removeMemberFinal");
-			CompositeResponse msg = teamCommands.removeTeamMemberInit(event);
-			if (msg.isErrorsOccured()) {
-				stopConversation(event);
-			}
-			ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
-			reply(session, event, response);
 
-		}
-
-	}
 }
