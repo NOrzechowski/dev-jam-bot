@@ -178,6 +178,8 @@ public abstract class MyBot {
 				}*/
 				if (event.getType().equalsIgnoreCase(EventType.IM_OPEN.name())) {
 					slackService.addDmChannel(event.getChannelId());
+				}else if (event.getType().equalsIgnoreCase(EventType.IM_CREATED.name())) {
+					slackService.addDmChannel(event.getChannel().getId());
 				} else if (event.getType().equalsIgnoreCase(EventType.MESSAGE.name())) {
 					isMessage = true;
 					if (event.getText() != null && event.getText().contains(slackService.getCurrentUser().getId())) { // direct

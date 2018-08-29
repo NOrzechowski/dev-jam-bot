@@ -95,7 +95,7 @@ public class TeamCommands extends BaseCommand {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
 			Team t = teams.get(0);
-			if(t != null) {
+			if(t != null && t.getProject() != null) {
 				List<Project> projects = projectRepository.findByUniqueIdentifier(t.getProject().getUniqueIdentifier());
 				Project p = projects.get(0);
 				p.setTeamLead(null);
