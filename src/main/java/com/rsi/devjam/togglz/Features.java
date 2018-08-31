@@ -28,6 +28,7 @@ public enum Features implements Feature {
 	@EnabledByDefault
 	@Label("!addMember")
 	ADD_MEMBER,
+	@EnabledByDefault
 	@Label("!pickProject")
 	PICK_PROJECT,
 	@EnabledByDefault

@@ -63,7 +63,7 @@ public class MiscCommands extends BaseCommand {
 			"Better not tell you now.", "Cannot predict now.", "Concentrate and ask again.", "Don't count on it.",
 			"My reply is no.", "My sources say no", "Outlook not so good.", "Very doubtful." };
 
-	private static String[] SIZES = new String[] { "s", "m", "l", "xl", "S", "M", "L", "XL" };
+	private static String[] SIZES = new String[] { "s", "m", "l", "xl", "xxl", "S", "M", "L", "XL", "XXL" };
 
 	public String getFaq(MyEvent event) {
 		StringBuilder output = new StringBuilder();
