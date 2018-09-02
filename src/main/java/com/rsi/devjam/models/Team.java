@@ -13,6 +13,7 @@ public class Team {
 	private List<Participant> participants;
 	private Participant lead;
 	private Project project;
+	private boolean proposedProject;
 
 	public String getId() {
 		return id;
@@ -53,7 +54,13 @@ public class Team {
 	public void setProject(Project project) {
 		this.project = project;
 	}
-	
-	
+
+	public boolean isProposedProject() {
+		return proposedProject;
+	}
+
+	public void setProposedProject(boolean proposedProject) {
+		this.proposedProject = proposedProject;
+	}
 
 }

@@ -156,7 +156,7 @@ public class MiscCommands extends BaseCommand {
 		boolean errorOccured = false;
 		if (validateInput(event)) {
 			output.append(
-					"*If you would like to sign up for a t-shirt, please enter a size (S, M, L, XL, or 'cancel' to cancel or to un-sign up)*\n");
+					"*If you would like to sign up for a t-shirt, please enter a size (S, M, L, XL, XXL, or 'cancel' to cancel or to un-sign up)*\n");
 			return new CompositeResponse(output.toString(), errorOccured);
 		}
 		return null;

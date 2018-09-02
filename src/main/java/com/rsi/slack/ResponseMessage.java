@@ -64,7 +64,5 @@ public class ResponseMessage {
 	
 	public String toJSONString() throws JsonProcessingException {
 		return new ObjectMapper().writeValueAsString(this);
-	}
-
-	
+	}	
 }

@@ -17,8 +17,6 @@ public class MyEvent extends Event {
 	public String getThreadTs() {
 		return threadTs;
 	}
-	
-	
 
 	public void setThreadTs(String threadTs) {
 		this.threadTs = threadTs;
@@ -28,19 +26,12 @@ public class MyEvent extends Event {
 		return !Strings.isNullOrEmpty(this.threadTs);
 	}
 
-
-
 	public ResponseMessage getMessage() {
 		return message;
 	}
 
-
-
 	public void setMessage(ResponseMessage message) {
 		this.message = message;
 	}
-	
-	
-	
-	
+
 }

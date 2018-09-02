@@ -18,6 +18,7 @@ public class Participant {
 	private Date updateDate = new Date();
 	private boolean wantsTShirt;
 	private String tShirtSize;
+	private boolean hasClaimedProject;
 	
 	public Participant() {
 	}

@@ -1,6 +1,5 @@
 package com.rsi.slack;
 
-import java.util.Date;
 import java.util.Objects;
 import java.util.regex.Matcher;
 
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketSession;
 import org.togglz.core.manager.FeatureManager;
 
-import com.rsi.devjam.models.Command;
 import com.rsi.devjam.repository.CommandRepository;
 import com.rsi.devjam.togglz.Features;
 import com.rsi.devjam.utilities.CompositeResponse;
@@ -50,7 +48,9 @@ public class SlackBot extends MyBot {
 	private String slackToken;
 
 	private static final String COMMAND_NOT_ENABLED = "Sorry %s, that command is not enabled yet!";
+	private static final String COMMAND_ERR = "Sorry, that command couldn't be completed at this time - please try again.";
 
+	private static final String DIRECT_MESSAGE = "DIRECT_MESSAGE";
 	String lastTs = "";
 
 	String lastUserId = "";
@@ -114,58 +114,54 @@ public class SlackBot extends MyBot {
 			reply(session, event, new Message(miscCommands.getExampleProjects(event)));
 		}
 	}
-	
-	@Controller(events = { EventType.MESSAGE}, pattern = "(?<=:8ball:).*$")
+
+	@Controller(events = { EventType.MESSAGE }, pattern = "(?<=:8ball:).*$")
 	public void magic8ball(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
-				miscCommands.upsertUser(event);
-				CompositeResponse res = miscCommands.eightBall(event);
-				ExtraRichMessage response;
-				if(res.isErrorsOccured()) {
-					response = new ExtraRichMessage(res.getMessageResponse(), event.getEventTs());
-				}else {
-					response = new ExtraRichMessage(res.getMessageResponse());
-				}
-				reply(session, event, response);
-		}
-	}
-	
-	
-	@Controller(events = {
-			EventType.MESSAGE,EventType.DIRECT_MESSAGE}, pattern = "(?i)^(!t-shirt|!tShirt)$", next = "tShirtFinal")
-	public void tShirt(WebSocketSession session, MyEvent event, Matcher matcher) {
-		if (validateIncomingMessage(event, matcher)) {
-				miscCommands.upsertUser(event);
-				startConversation(event, "tShirtFinal");
-				CompositeResponse msg = miscCommands.tShirtInit(event);
-				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
-				
-				if (!event.getType().equals("DIRECT_MESSAGE")) {
-					response.setThreadTs(event.getTs());
-					response.setReplyTo(1);
-				}
-				lastTs = event.getTs();
-				lastUserId = event.getUserId();
-				reply(session, event, response);
+			miscCommands.upsertUser(event);
+			CompositeResponse res = miscCommands.eightBall(event);
+			ExtraRichMessage response;
+			if (res.isErrorsOccured()) {
+				response = new ExtraRichMessage(res.getMessageResponse(), event.getEventTs());
+			} else {
+				response = new ExtraRichMessage(res.getMessageResponse());
+			}
+			reply(session, event, response);
 		}
 	}
 
 	@Controller(events = { EventType.MESSAGE,
-			EventType.DIRECT_MESSAGE }, pattern = "tShirtFinal")
-	public void tShirtFinal(WebSocketSession session, MyEvent event) {
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!t-shirt|!tShirt)$", next = "tShirtFinal")
+	public void tShirt(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
-			if (event.getUserId().equals(lastUserId)) {
-				ExtraRichMessage response = new ExtraRichMessage(miscCommands.tShirtFinal(event));
-				if (!event.getType().equals("DIRECT_MESSAGE")) {
-					response.setThreadTs(lastTs);
-					response.setReplyTo(1);
-				}
-				lastTs = "";
-				reply(session, event, response);
+			startConversation(event, "tShirtFinal");
+			CompositeResponse msg = miscCommands.tShirtInit(event);
+			ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
+
+			if (!event.getType().equals(DIRECT_MESSAGE)) {
+				response.setThreadTs(event.getTs());
 			}
-			stopConversation(event);
+			lastTs = event.getTs();
+			lastUserId = event.getUserId();
+			reply(session, event, response);
+		}
 	}
-	
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "tShirtFinal")
+	public void tShirtFinal(WebSocketSession session, MyEvent event) {
+		miscCommands.upsertUser(event);
+		if (event.getUserId().equals(lastUserId)) {
+			ExtraRichMessage response = new ExtraRichMessage(miscCommands.tShirtFinal(event));
+			if (!event.getType().equals(DIRECT_MESSAGE)) {
+				response.setThreadTs(lastTs);
+			}
+			lastTs = "";
+			reply(session, event, response);
+		}
+		stopConversation(event);
+	}
+
 	@Controller(events = { EventType.MESSAGE,
 			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!tshirts|!signedUpForTShirts|!t-shirts)$")
 	public void getTshirts(WebSocketSession session, MyEvent event, Matcher matcher) {
@@ -173,9 +169,8 @@ public class SlackBot extends MyBot {
 			if (manager.isActive(Features.GET_PROJECTS)) {
 				miscCommands.upsertUser(event);
 				ExtraRichMessage response = new ExtraRichMessage(miscCommands.getTShirtParticipants(event));
-				if (!event.getType().equals("DIRECT_MESSAGE")) {
+				if (!event.getType().equals(DIRECT_MESSAGE)) {
 					response.setThreadTs(event.getTs());
-					response.setReplyTo(1);
 				}
 				reply(session, event, response);
 			}
@@ -193,7 +188,8 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!foundTeam|!notLookingForTeam)$")
+	@Controller(events = { EventType.MESSAGE,
+			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!foundTeam|!notLookingForTeam)$")
 	public void stopLookingForTeam(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.LOOK_FOR_TEAM)) {
@@ -235,9 +231,8 @@ public class SlackBot extends MyBot {
 			}
 		}
 	}
-	
-	@Controller(events = {
-			EventType.MESSAGE }, pattern = "(?i)^(!addTeamName)$", next = "addTeamNameFinal")
+
+	@Controller(events = { EventType.MESSAGE }, pattern = "(?i)^(!addTeamName)$", next = "addTeamNameFinal")
 	public void addTeamName(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			if (manager.isActive(Features.ADD_MEMBER)) {
@@ -247,9 +242,8 @@ public class SlackBot extends MyBot {
 				if (msg.isErrorsOccured()) {
 					stopConversation(event);
 				}
-				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
-				response.setThreadTs(event.getTs());
 				lastTs = event.getTs();
+				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse(), lastTs);
 				lastUserId = event.getUserId();
 				reply(session, event, response);
 
@@ -262,10 +256,8 @@ public class SlackBot extends MyBot {
 		if (manager.isActive(Features.ADD_MEMBER)) {
 			miscCommands.upsertUser(event);
 			if (event.getUserId().equals(lastUserId)) {
-				ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamNameFinal(event));
-				response.setThreadTs(lastTs);
+				ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamNameFinal(event), lastTs);
 				lastTs = "";
-				response.setReplyTo(1);
 				reply(session, event, response);
 			}
 			stopConversation(event);
@@ -294,12 +286,10 @@ public class SlackBot extends MyBot {
 				if (msg.isErrorsOccured()) {
 					stopConversation(event);
 				}
-				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
-				response.setThreadTs(event.getTs());
 				lastTs = event.getTs();
+				ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse(), lastTs);
 				lastUserId = event.getUserId();
 				reply(session, event, response);
-
 			}
 		}
 	}
@@ -309,29 +299,24 @@ public class SlackBot extends MyBot {
 		if (manager.isActive(Features.ADD_MEMBER)) {
 			miscCommands.upsertUser(event);
 			if (event.getUserId().equals(lastUserId)) {
-				ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamMembersFinal(event));
-				response.setThreadTs(lastTs);
+				ExtraRichMessage response = new ExtraRichMessage(teamCommands.addTeamMembersFinal(event), lastTs);
 				lastTs = "";
-				response.setReplyTo(1);
 				reply(session, event, response);
 			}
 			stopConversation(event);
 		}
 	}
 
-	@Controller(events = {
-			EventType.DIRECT_MESSAGE }, pattern = "(?<=addChannel).*$")
+	@Controller(events = { EventType.DIRECT_MESSAGE }, pattern = "(?<=addChannel).*$")
 	public void addChannel(WebSocketSession session, MyEvent event) {
 		logger.debug("in addChannel");
-		
 		String[] inputs = event.getText().split(" ");
 		String channel = inputs[1].trim();
-		System.out.println("channel: " + channel);
 		slackService.addDmChannel(channel);
 		reply(session, event, new ExtraRichMessage("added " + channel));
 
 	}
-	
+
 	@Controller(events = { EventType.MESSAGE,
 			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!removeMember|!removeTeamMember)$", next = "removeMemberFinal")
 	public void removeMemberInit(WebSocketSession session, MyEvent event) {
@@ -347,17 +332,19 @@ public class SlackBot extends MyBot {
 			}
 			ExtraRichMessage response = new ExtraRichMessage(msg.getMessageResponse());
 			reply(session, event, response);
-
 		}
 
 	}
 
-	@Controller(events = {  EventType.MESSAGE,EventType.DIRECT_MESSAGE }, pattern = "removeMemberFinal")
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "removeMemberFinal")
 	public void removeMemberFinal(WebSocketSession session, MyEvent event) {
 		System.out.println("in remove member final: " + event.getText());
 		if (manager.isActive(Features.ADD_MEMBER)) {
 			if (event.getUserId().equals(lastUserId)) {
 				ExtraRichMessage response = new ExtraRichMessage(teamCommands.removeTeamMemberFinal(event));
+				reply(session, event, response);
+			} else {
+				ExtraRichMessage response = new ExtraRichMessage(COMMAND_ERR, event.getEventTs());
 				reply(session, event, response);
 			}
 			stopConversation(event);
@@ -373,10 +360,8 @@ public class SlackBot extends MyBot {
 			if (manager.isActive(Features.GET_PROJECTS)) {
 				miscCommands.upsertUser(event);
 				ExtraRichMessage response = new ExtraRichMessage(projectCommands.getProjects(event));
-				System.out.println("type : " + event.getType());
-				if (!event.getType().equals("DIRECT_MESSAGE")) {
+				if (!event.getType().equals(DIRECT_MESSAGE)) {
 					response.setThreadTs(event.getTs());
-					response.setReplyTo(1);
 				}
 				reply(session, event, response);
 			}
@@ -387,7 +372,6 @@ public class SlackBot extends MyBot {
 			EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!submitProjectIdea|!addIdea|!addProjectIdea|!submitProject)$", next = "projectSummary")
 	public void submitProjectIdea(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (manager.isActive(Features.SUBMIT_PROJECT_IDEA)) {
-			System.out.println("here(submitProjectIdea)");
 			if (validateIncomingMessage(event, matcher)) {
 				miscCommands.upsertUser(event);
 				startConversation(event, "projectSummary");
@@ -406,30 +390,31 @@ public class SlackBot extends MyBot {
 		stopConversation(event);
 	}
 
-	@Controller(events = { EventType.MESSAGE}, pattern = "^.*?\\!claimProject\\b.*?\\.*\\b.*?$")
+	@Controller(events = { EventType.MESSAGE }, pattern = "^.*?\\!claimProject\\b.*?\\.*\\b.*?$")
 	public void claimProject(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
-			System.out.println("claim project: " + event.getText());
 			if (manager.isActive(Features.PICK_PROJECT)) {
 				miscCommands.upsertUser(event);
-				ExtraRichMessage response = new ExtraRichMessage(projectCommands.claimProject(event).getMessageResponse(), event.getEventTs());
+				ExtraRichMessage response = new ExtraRichMessage(
+						projectCommands.claimProject(event).getMessageResponse(), event.getEventTs());
+				reply(session, event, response);
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!projectProposal)$")
+	public void projectProposal(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			if (manager.isActive(Features.PICK_PROJECT)) {
+				miscCommands.upsertUser(event);
+				ExtraRichMessage response = new ExtraRichMessage(
+						projectCommands.projectProposal(event).getMessageResponse(), event.getEventTs());
 				reply(session, event, response);
 			}
 		}
 	}
 
 	// ************************ question commands ************************\\
-
-	// TODO
-
-	// housekeeping commands
-	private void registerCommand(Event e) {
-		Command command = new Command(e);
-		command.setUserId(e.getUserId());
-		command.setText(e.getText());
-		command.setUpdated(new Date());
-		commandRepository.save(command);
-	}
-	
+	// To be implemented \\
 
 }

@@ -30,19 +30,17 @@ public class ProjectCommands extends BaseCommand {
 
 	@Autowired
 	ParticipantRepository particpantRepository;
-	
+
 	@Autowired
 	TeamRepository teamRepository;
-	
+
 	@Value("${projectSubmissionUrl}")
 	private String projectSubmissionUrl;
-	
+
 	@Value("${projectComitteeMembers}")
 	private String projectComitteeMembers;
-	
 
-
-	private String getProjectId() {
+	private String generateProjectId() {
 		int leftLimit = 97; // letter 'a'
 		int rightLimit = 122; // letter 'z'
 		int targetStringLength = 10;
@@ -122,7 +120,7 @@ public class ProjectCommands extends BaseCommand {
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			Project project = new Project();
 			project.setSummary(event.getText());
-			project.setUniqueIdentifier(getProjectId());
+			project.setUniqueIdentifier(generateProjectId());
 			project.setSubmittedBy(currentUser);
 			projectRepository.save(project);
 			output.append("Great, your project idea has been submitted.\n");
@@ -130,8 +128,7 @@ public class ProjectCommands extends BaseCommand {
 		}
 		return null;
 	}
-	
-	
+
 	public CompositeResponse claimProject(MyEvent event) {
 		String couldNotBeFound = "Sorry, that project could not be found.\n";
 		boolean errorsFound = false;
@@ -143,44 +140,75 @@ public class ProjectCommands extends BaseCommand {
 			} else {
 				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
 				Team currentTeam = teams.get(0);
-		
-				
-				//set new claimed project
+
+				// set new claimed project
 				String[] entries = event.getText().split(" ");
-				if(entries.length >= 1) {
-					//unset existing claimed project
-					if(currentTeam.getProject() != null) {
-						List<Project> existingProjects = projectRepository.findByUniqueIdentifier(currentTeam.getProject().getUniqueIdentifier());
+				if (entries.length >= 1) {
+					// unset existing claimed project
+					if (currentTeam.getProject() != null) {
+						List<Project> existingProjects = projectRepository
+								.findByUniqueIdentifier(currentTeam.getProject().getUniqueIdentifier());
 
 						Project p = existingProjects.get(0);
 						p.setTeamLead(null);
 						p.setClaimed(false);
 						projectRepository.save(p);
-						
+
 						currentTeam.setProject(null);
 						teamRepository.save(currentTeam);
 					}
-					
+
 					String pId = entries[1].trim();
 					List<Project> projects = projectRepository.findByUniqueIdentifier(pId);
-					if(!projects.isEmpty()) {
+					if (!projects.isEmpty()) {
 						Project project = projects.get(0);
-						project.setClaimed(true);
-						project.setTeamLead(currentUser);
-						projectRepository.save(project);
-						
-						currentTeam.setProject(project);
-						teamRepository.save(currentTeam);
-						output.append("*Thanks! In order to fully submit your team you must fill out the following form:* " + projectSubmissionUrl + "\n");
-						output.append("- If you need additional help, feel free to reach out to a member of the project comittee (" + projectComitteeMembers + ")\n");
-					}else {
+						if (project.isClaimed()) {
+							output.append("*Sorry, that project is already claimed.*\n");
+						} else {
+							project.setClaimed(true);
+							project.setTeamLead(currentUser);
+							projectRepository.save(project);
+
+							currentTeam.setProject(project);
+							teamRepository.save(currentTeam);
+							output.append(
+									"*Thanks! In order to fully submit your team you must fill out the following form:* "
+											+ projectSubmissionUrl + "\n");
+							output.append(
+									"- If you need additional help, feel free to reach out to a member of the project comittee ("
+											+ projectComitteeMembers + ")\n");
+						}
+					} else {
 						output.append(couldNotBeFound);
 					}
 				} else {
-					//nothing for now
+					// nothing for now
 				}
 			}
-			
+
+			return new CompositeResponse(output.toString(), errorsFound);
+		}
+		return null;
+	}
+
+	public CompositeResponse projectProposal(MyEvent event) {
+		boolean errorsFound = false;
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+			if (!currentUser.isTeamLead()) {
+				output.append("*You must be a team lead to complete the project proposal form.*\n");
+			} else {
+				List<Team> teams = teamRepository.findByLead_User(currentUser.getUser());
+				Team currentTeam = teams.get(0);
+				currentTeam.setProposedProject(true);
+				teamRepository.save(currentTeam);
+				output.append("*In order to fully submit your team you must fill out the following form:* "
+						+ projectSubmissionUrl + "\n");
+				output.append(
+						"- If you need additional help, feel free to reach out to a member of the project comittee ("
+								+ projectComitteeMembers + ")\n"); 
+			}
 			return new CompositeResponse(output.toString(), errorsFound);
 		}
 		return null;

@@ -312,7 +312,6 @@ public class TeamCommands extends BaseCommand {
 				output.append("Sorry, none of the users specified could be found.\n");
 			} else if (foundInvalids) {
 				output.append("Great, the valid usernames have been added to your team.\n");
-
 			} else {
 				output.append("Great, they have been added to your team.\n");
 			}
