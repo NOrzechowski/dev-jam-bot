@@ -331,7 +331,7 @@ public class MiscCommands extends BaseCommand {
 			if (currDate == null) {
 				currDate = LocalDate.now().minusDays(1);
 			}
-			LocalDate lastRunPlusOne = LocalDate.now();//currDate.plusDays(1);
+			LocalDate lastRunPlusOne = currDate.plusDays(1);
 			if (!lastRunPlusOne.isAfter(LocalDate.now())) {
 				n = n + 1;
 				currentUser.setPixieStixCount(n);
