@@ -1,5 +1,6 @@
 package com.rsi.devjam.models;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 import org.springframework.data.annotation.Id;
@@ -18,7 +19,8 @@ public class Participant {
 	private Date updateDate = new Date();
 	private boolean wantsTShirt;
 	private String tShirtSize;
-	private boolean hasClaimedProject;
+	private int pixieStixCount;
+	private LocalDate pixieStixLastRun;
 	
 	public Participant() {
 	}
@@ -107,6 +109,23 @@ public class Participant {
 
 	public void settShirtSize(String tShirtSize) {
 		this.tShirtSize = tShirtSize;
+	}
+	
+
+	public int getPixieStixCount() {
+		return pixieStixCount;
+	}
+
+	public void setPixieStixCount(int pixieStixCount) {
+		this.pixieStixCount = pixieStixCount;
+	}
+
+	public LocalDate getPixieStixLastRun() {
+		return pixieStixLastRun;
+	}
+
+	public void setPixieStixLastRun(LocalDate pixieStixLastRun) {
+		this.pixieStixLastRun = pixieStixLastRun;
 	}
 
 	@Override

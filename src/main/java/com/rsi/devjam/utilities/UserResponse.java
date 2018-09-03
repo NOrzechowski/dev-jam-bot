@@ -1,17 +1,17 @@
 package com.rsi.devjam.utilities;
 
-import me.ramswaroop.jbot.core.slack.models.User;
+import com.rsi.devjam.models.MyUser;
 
 public class UserResponse {
     private boolean ok;
-    private User user;
+    private MyUser user;
 
     public boolean isOk() {
         return ok;
     }
 
 
-    public User getUser() {
+    public MyUser getUser() {
         return user;
     }
     

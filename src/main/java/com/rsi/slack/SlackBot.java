@@ -107,11 +107,11 @@ public class SlackBot extends MyBot {
 		}
 	}
 
-	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!exampleProjects)$")
-	public void getExampleProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
+	@Controller(events = { EventType.DIRECT_MESSAGE }, pattern = "^.*?\\!loadUsersByChannel\\b.*?\\.*\\b.*?$")
+	public void getUsersByChannel(WebSocketSession session, MyEvent event, Matcher matcher) {
 		if (validateIncomingMessage(event, matcher)) {
 			miscCommands.upsertUser(event);
-			reply(session, event, new Message(miscCommands.getExampleProjects(event)));
+			reply(session, event, new Message(miscCommands.loadUsersByChannel(event)));
 		}
 	}
 
@@ -176,6 +176,38 @@ public class SlackBot extends MyBot {
 			}
 		}
 	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!exampleProjects)$")
+	public void getExampleProjects(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			miscCommands.upsertUser(event);
+			reply(session, event, new Message(miscCommands.getExampleProjects(event)));
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!pixieStick)$")
+	public void pixieStick(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			miscCommands.upsertUser(event);
+			CompositeResponse msg = miscCommands.pixieStix(event);
+			if (msg.isErrorsOccured()) {
+				reply(session, event, new ExtraRichMessage(msg.getMessageResponse(), event.getEventTs()));
+
+			} else {
+				reply(session, event, new Message(msg.getMessageResponse()));
+			}
+		}
+	}
+
+	@Controller(events = { EventType.MESSAGE, EventType.DIRECT_MESSAGE }, pattern = "(?i)^(!doorPrize)$")
+	public void doorPrize(WebSocketSession session, MyEvent event, Matcher matcher) {
+		if (validateIncomingMessage(event, matcher)) {
+			miscCommands.upsertUser(event);
+			String msg = miscCommands.doorPrize(event);
+			reply(session, event, new Message(msg));
+		}
+	}
+
 	// *************************** team commands **************************\\
 
 	@Controller(events = EventType.MESSAGE, pattern = "(?i)^(!lookForTeam|!lookForATeam|!lookingForTeam)$")

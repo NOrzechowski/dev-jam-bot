@@ -1,20 +1,19 @@
 package com.rsi.devjam.utilities;
 
+import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.Objects;
+import java.util.LinkedList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.rsi.devjam.models.MyUser;
 import com.rsi.devjam.models.Participant;
-import com.rsi.devjam.models.Project;
 import com.rsi.devjam.models.Question;
 import com.rsi.devjam.repository.ParticipantRepository;
 import com.rsi.devjam.repository.QuestionRepository;
 import com.rsi.slack.MyEvent;
-
-import me.ramswaroop.jbot.core.slack.models.User;
 
 @Component
 public class MiscCommands extends BaseCommand {
@@ -196,7 +195,7 @@ public class MiscCommands extends BaseCommand {
 
 	public void upsertUser(MyEvent event) {
 		if (validateInput(event)) {
-			User userData = getUser(event);
+			MyUser userData = getUser(event);
 			Participant currentUser = particpantRepository.findByUser(event.getUserId());
 			if (userData != null) {
 				String username = userData.getProfile().getRealName();
@@ -219,11 +218,12 @@ public class MiscCommands extends BaseCommand {
 			output.append(ASTERISKS);
 			if (currentlySignedUp.iterator().hasNext()) {
 				currentlySignedUp.forEach(participant -> {
-					if(participant.isWantsTShirt()) {
-						output.append("- *name:* " + participant.getName() + ", *size:* " + participant.gettShirtSize() + "\n");
+					if (participant.isWantsTShirt()) {
+						output.append("- *name:* " + participant.getName() + ", *size:* " + participant.gettShirtSize()
+								+ "\n");
 					}
 				});
-			} 
+			}
 			output.append(ASTERISKS);
 			return output.toString();
 		}
@@ -232,7 +232,7 @@ public class MiscCommands extends BaseCommand {
 	}
 
 	public void upsertUser(String userId) {
-		User userData = getUser(userId);
+		MyUser userData = getUser(userId);
 		Participant currentUser = particpantRepository.findByUser(userId);
 		if (userData != null) {
 			String username = userData.getProfile().getRealName();
@@ -244,6 +244,131 @@ public class MiscCommands extends BaseCommand {
 			particpantRepository.save(currentUser);
 		}
 
+	}
+
+	public String getUserByEmail(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			String[] entries = event.getText().split(" ");
+
+			String email = entries[1].trim();
+			System.out.println("email: " + email);
+			MyUser userData = getUserByEmail(email);
+			System.out.println("found: " + userData.getName());
+			output.append(userData.getProfile().getTeam());
+
+			return output.toString();
+		}
+		return null;
+	}
+
+	public String loadUsersByChannel(MyEvent event) {
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			String[] entries = event.getText().split(" ");
+			String channel = entries[1].trim();
+			LinkedList<MyUser> userData = getUsersByChannel(channel);
+			for (MyUser user : userData) {
+				upsertUser(user.getId());
+			}
+			output.append(userData.size() + " users loaded");
+			return output.toString();
+		}
+		return null;
+	}
+
+	/*
+	 * -- !doorPrize <random user> won <random item>
+	 * 
+	 * //items an old shoe a lime green phone case for a 3 year old Android
+	 * phone. The Parking Spot! (Not really) the privilege of being here. free
+	 * coffee! nothing... bragging rights. pocket lint
+	 */
+	private static final String[] DOOR_PRIZES = new String[] { "an old shoe",
+			"a lime green phone case for a 3 year old Android phone.", "the Parking Spot! (Not really)",
+			"the privilege of being here.", "free coffee!", "nothing...", "bragging rights", "pocket lint" };
+
+	public String doorPrize(MyEvent event) {
+		String winningFormat = "*%s* won %s\n";
+		StringBuilder output = new StringBuilder();
+		if (validateInput(event)) {
+			output.append(String.format(winningFormat,
+					new Object[] { getRandomUser().getName(), DOOR_PRIZES[getRandomNumber(DOOR_PRIZES.length)] }));
+			return output.toString();
+		}
+		return null;
+	}
+
+	/*
+	 * !pixieStick // Limit to once per day You've had <count> pixie sticks.
+	 * <phrase> 1st phrase: You've just eaten your first pixie stick. It was
+	 * super delicious!
+	 * 
+	 * 2 - 5 & 7-11 & 12+ phrases Sugar! Also know as unicorn sneezes It taste
+	 * like Candyland Coding fuel No one can beat Laura's Dev Jam pixie stick
+	 * record This is the stuff dreams are made of Digital SUGAR!
+	 * 
+	 * 6 (special phrase) After eating a half dozen pixie sticks, you can now
+	 * smell color.
+	 * 
+	 * 12 (special phrase) You've had a dozen pixie sticks. I think you've
+	 * beaten Laura's Dev Jam pixie stick record. Though we all lost count after
+	 * a while.
+	 * 
+	 * 20 (special phrase) I think we're just making a mountain of sugar at this
+	 * point.
+	 * 
+	 * 20+ all the pixie sticks are gone :(
+	 */
+	public CompositeResponse pixieStix(MyEvent event) {
+		String stixFormat = "*%s*\n";
+		StringBuilder output = new StringBuilder();
+		boolean errsOccured = false;
+		if (validateInput(event)) {
+			Participant currentUser = particpantRepository.findByUser(event.getUserId());
+			int n = currentUser.getPixieStixCount();
+			LocalDate currDate = currentUser.getPixieStixLastRun();
+			if (currDate == null) {
+				currDate = LocalDate.now().minusDays(1);
+			}
+			LocalDate lastRunPlusOne = LocalDate.now();//currDate.plusDays(1);
+			if (!lastRunPlusOne.isAfter(LocalDate.now())) {
+				n = n + 1;
+				currentUser.setPixieStixCount(n);
+				currentUser.setPixieStixLastRun(LocalDate.now());
+				particpantRepository.save(currentUser);
+				output.append(String.format(stixFormat, new Object[] { getPixieStixPhrase(n) }));
+			} else {
+				errsOccured = true;
+				output.append("Only one pixie stick per day!!!\n");
+			}
+
+			return new CompositeResponse(output.toString(), errsOccured);
+		}
+		return null;
+	}
+
+	private String getPixieStixPhrase(int n) {
+		String defaultPhrase = "Sugar! Also know as unicorn sneezes It taste like Candyland Coding fuel No one can beat Laura's Dev Jam pixie stick record This is the stuff dreams are made of - Digital SUGAR!";
+
+		switch (n) {
+		case 1:
+			return "You've just eaten your first pixie stick. It was super delicious!";
+		case 6:
+			return "After eating a half dozen pixie sticks, you can now smell color.";
+
+		case 12:
+			return "You've had a dozen pixie sticks. I think you've beaten Laura's Dev Jam pixie stick record. Though we all lost count after a while.";
+		case 20:
+			return "I think we're just making a mountain of sugar at this point.";
+		default:
+			if ((2 <= n && n <= 5) || (7 <= n && n < 12) || (12 < n && n < 20)) {
+				return defaultPhrase;
+			} else if (n > 20) {
+				return "All your pixie sticks are gone! :(";
+			}
+			return "";
+		}
 	}
 
 }
