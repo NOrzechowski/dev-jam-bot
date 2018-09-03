@@ -1,5 +1,5 @@
 /bin/*
-/src/main/resources/*
+#/src/main/resources/*
 .gradle
 /build/
 !gradle/wrapper/gradle-wrapper.jar
