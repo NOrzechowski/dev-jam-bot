@@ -349,23 +349,24 @@ public class MiscCommands extends BaseCommand {
 	}
 
 	private String getPixieStixPhrase(int n) {
-		String defaultPhrase = "Sugar! Also know as unicorn sneezes It taste like Candyland Coding fuel No one can beat Laura's Dev Jam pixie stick record This is the stuff dreams are made of - Digital SUGAR!";
-
+		
+		String[] phrases = new String[]{"Sugar!","Also know as unicorn sneezes","It taste like Candyland","Coding fuel","No one can beat Laura's Dev Jam pixie stick record","This is the stuff dreams are made of","Digital SUGAR!"};		
+		String suffix = " ("+n+" / 20)";
 		switch (n) {
 		case 1:
-			return "You've just eaten your first pixie stick. It was super delicious!";
+			return "You've just eaten your first pixie stick. It was super delicious!" + suffix;
 		case 6:
-			return "After eating a half dozen pixie sticks, you can now smell color.";
+			return "After eating a half dozen pixie sticks, you can now smell color."+ suffix;
 
 		case 12:
-			return "You've had a dozen pixie sticks. I think you've beaten Laura's Dev Jam pixie stick record. Though we all lost count after a while.";
+			return "You've had a dozen pixie sticks. I think you've beaten Laura's Dev Jam pixie stick record. Though we all lost count after a while."+ suffix;
 		case 20:
-			return "I think we're just making a mountain of sugar at this point.";
+			return "I think we're just making a mountain of sugar at this point."+ suffix;
 		default:
 			if ((2 <= n && n <= 5) || (7 <= n && n < 12) || (12 < n && n < 20)) {
-				return defaultPhrase;
+				return phrases[getRandomNumber(phrases.length)]+ suffix;
 			} else if (n > 20) {
-				return "All your pixie sticks are gone! :(";
+				return "All your pixie sticks are gone, sadness abounds. "+ suffix;
 			}
 			return "";
 		}
