@@ -284,7 +284,8 @@ public class MiscCommands extends BaseCommand {
 	 * phone. The Parking Spot! (Not really) the privilege of being here. free
 	 * coffee! nothing... bragging rights. pocket lint
 	 */
-	private static final String[] DOOR_PRIZES = new String[] { "an old shoe",
+	private static final String[] DOOR_PRIZES = new String[] { "an old shoe", "a half eaten muffin", "an empty box of cookies", "a pie in the face", 
+			"1,000 Chick-n-Minis", "a no expense paid trip to California",
 			"a lime green phone case for a 3 year old Android phone.", "the Parking Spot! (Not really)",
 			"the privilege of being here.", "free coffee!", "nothing...", "bragging rights", "pocket lint" };
 
@@ -350,7 +351,7 @@ public class MiscCommands extends BaseCommand {
 
 	private String getPixieStixPhrase(int n) {
 		
-		String[] phrases = new String[]{"Sugar!","Also know as unicorn sneezes","It taste like Candyland","Coding fuel","No one can beat Laura's Dev Jam pixie stick record","This is the stuff dreams are made of","Digital SUGAR!"};		
+		String[] phrases = new String[]{"Sugar!","when did the room start vibrating?","like catnip for humans","Also know as unicorn sneezes","It taste like Candyland","Coding fuel","No one can beat Laura's Dev Jam pixie stick record","This is the stuff dreams are made of","Digital SUGAR!"};		
 		String suffix = " ("+n+" / 20)";
 		switch (n) {
 		case 1:
