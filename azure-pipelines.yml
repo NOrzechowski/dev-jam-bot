@@ -21,7 +21,7 @@ steps:
 
 - task: CopyFiles@2
   inputs:
-    contents: '**/helloworld*.jar'
+    contents: '**/projectbot*.jar'
     targetFolder: '$(build.artifactStagingDirectory)'
 
 - task: PublishBuildArtifacts@1
